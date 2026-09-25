@@ -104,21 +104,17 @@ plan) fails any push to `fellowship` that reintroduces an excluded path.
 
 ## Ambiguous items resolved
 
-Per your call: all "ambiguous" modules (backtest, indicators, screener,
-portfolio, risk, reports, simulate, fundamentals) are **EXCLUDED**. The
-fellowship version demonstrates the agentic reasoning layer only; it is
-not a runnable end-to-end trading system.
+All "ambiguous" modules (backtest, indicators, screener, portfolio, risk,
+reports, simulate, fundamentals) are **EXCLUDED**. This branch demonstrates
+the agentic reasoning layer only.
 
-**Consequence:** `argos/graph.py` and the agent nodes may import from
-excluded modules (e.g. `argos.data.*`, `argos.indicators.*`). Before the
-first fellowship push we will either:
-1. Add lightweight stub modules under `argos/data/`, `argos/indicators/`,
-   etc. that return typed fake data — so the graph can be *imported and
-   unit-tested* on the fork even though it can't run against real markets, or
-2. Refactor node imports behind an interface layer so the fork ships the
-   interface + a fake implementation, and the private repo has the real one.
+## Runnable? No — code showcase only.
 
-Option 1 is faster; option 2 is cleaner. Decide before the first sync.
+This branch is **not intended to run end-to-end.** Evaluators read commits
+and browse code; demos happen from the private branch. `argos/graph.py`
+and agent nodes import from `argos.data.*`, `argos.indicators.*`, and
+other excluded modules — those imports are intentionally dangling on this
+branch. No stubs, no interface refactor. Static reading only.
 
 ---
 
@@ -134,9 +130,7 @@ Option 1 is faster; option 2 is cleaner. Decide before the first sync.
 
 ---
 
-## Open questions for you
+## Fellowship fork remote
 
-- **README rewrite:** happy for me to draft a fellowship-facing README, or do you want to write it yourself?
-- **Stub strategy:** option 1 (fake data modules) or option 2 (interface refactor) for the excluded-import problem?
-- **Org repo name:** what will the fellowship fork be called under the Fuse-AI org? (Needed for the `fellowship-fork` remote URL.)
-- **`.env.example` audit:** it currently has 3.2 KB of keys — many are probably for excluded modules (Gemini fundamentals fetcher, NEPSE APIs). Should I trim it to only what the agent graph reads?
+`https://github.com/fuseai-fellowship/A-Multi-Agent-Trading-Research-Desk-.git`
+(added locally as remote `fellowship-fork`, mapped `fellowship:main`).
