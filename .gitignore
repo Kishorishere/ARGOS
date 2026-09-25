@@ -220,7 +220,7 @@ __marimo__/
 # Argos project-specific
 logs/
 *.log
-data/
+/data/
 *.apk
 plan.html
 
