@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Argos project-specific
+logs/
+*.log
+data/
+*.apk
+plan.html
+
