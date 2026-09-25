@@ -1,0 +1,26 @@
+{
+  "ticker": "AAPL",
+  "as_of_date": "2024-03-04",
+  "ohlcv_window": {
+    "ticker": "AAPL",
+    "as_of_date": "2024-03-04",
+    "ohlcv": [
+      {"date": "2024-02-01", "open": 184.15, "high": 184.49, "low": 181.32, "close": 181.38, "volume": 57134000},
+      {"date": "2024-02-02", "open": 181.55, "high": 185.15, "low": 181.28, "close": 185.04, "volume": 67742000},
+      {"date": "2024-03-01", "open": 179.46, "high": 180.00, "low": 178.74, "close": 179.93, "volume": 40991000}
+    ],
+    "rows": 20,
+    "date_range": "2024-02-01 to 2024-03-01"
+  },
+  "fundamentals_signal": null,
+  "sentiment_signal": null,
+  "technicals_signal": null,
+  "kronos_forecast": null,
+  "bull_argument": null,
+  "bear_argument": null,
+  "debate_round": 0,
+  "risk_verdict": null,
+  "final_decision": null,
+  "run_id": "test-run-001",
+  "errors": []
+}
