@@ -21,6 +21,7 @@ import json
 import logging
 import math
 from collections import Counter
+from functools import lru_cache
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -29,8 +30,13 @@ FLOORSHEET_DIR = Path(__file__).resolve().parents[2] / "data" / "floorsheet"
 BLOCK_TRADE_NPR = 500_000    # NPR 5 lakh = institutional threshold
 
 
+@lru_cache(maxsize=64)
 def _load_day_rows(d: str) -> list[dict]:
-    """Load one day's floorsheet as raw dicts."""
+    """Load one day's floorsheet as raw dicts.
+
+    lru_cache: same day is queried by every ensemble source AND across
+    every ticker in a universe rank; parsing the JSONL 132× is silly.
+    """
     p = FLOORSHEET_DIR / f"{d}.jsonl"
     if not p.exists():
         return []

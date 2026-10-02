@@ -123,6 +123,8 @@ def build_record(
             "rounds_completed": max(final_state.get("debate_round", 1) - 1, 1),
         },
         "debate_transcript": final_state.get("debate_transcript", []),
+        # ── Blind judge verdict (independent adjudicator on the debate) ──
+        "judge_verdict": final_state.get("judge_verdict"),
         # ── Risk verdict ──
         "risk_verdict": final_state.get("risk_verdict"),
         # ── Final decision ──

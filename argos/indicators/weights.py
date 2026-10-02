@@ -10,12 +10,15 @@ current `trend.regime` and `volatility.vol_regime`. Applied AFTER the raw
 signals fire, before the composite_bull/bear_score is summed.
 
 Design principles:
+- **Uptrend regime**: trend-following gets 1.5-2x; mean-reversion gets 0.3x
+  (don't fade a healthy trend).
+- **Downtrend regime**: like uptrend but mean-reversion is faded HARDER
+  (0.15x) — the "RSI 30 = buy" reflex is what turns bear markets into
+  drawdowns; and Bollinger-breakout-up gets faded (fakeouts) while
+  breakdown gets boosted (aligns with regime). Merged from terminal's
+  `_REGIME_WEIGHTS` bear column.
 - **Chop regime**: mean-reversion indicators (RSI oversold, Stoch <20,
-  BB-touch, Williams %R) get 1.5-2x; trend-following (MACD hist, EMA cross,
-  ADX>25) get 0.4-0.6x (they lie in chop).
-- **Trend regime**: mirror — trend-following gets 1.5-2x; mean-reversion
-  gets 0.3x (don't fade a trend; RSI 30 in a downtrend usually means MORE
-  downtrend).
+  BB-touch, Williams %R) get 1.5-2x; trend-following gets 0.4-0.6x.
 - **High-vol regime**: cut all weights by ~40% — signals are less reliable
   when the market is thrashing. Uncertainty tax.
 """
@@ -32,7 +35,7 @@ VolRegime = Literal["low", "mid", "high", None]
 # Per-regime weight multipliers keyed by indicator "family" (matching the
 # `indicator` prefix set in engine.py::ThresholdSignal.indicator strings).
 # Any indicator not listed here gets 1.0 (no adjustment).
-_TREND_MULT = {
+_UPTREND_MULT = {
     # Trend-following: full weight in trend regimes
     "MACD(12,26,9)":         1.5,
     "MACD hist flip":        1.5,
@@ -50,6 +53,40 @@ _TREND_MULT = {
     "Bollinger breakdown":   1.2,
     "MFI(14)":               0.6,
     # Volume + candle patterns: neutral
+}
+
+# Downtrend variant — merged from terminal's bear-regime column. The
+# insight isn't that mean-reversion is DIFFERENTLY biased in bear vs bull
+# (Argos indicators are direction-symmetric), but that the RSI-30-buy
+# reflex is a much bigger drawdown magnet in a persistent downtrend, and
+# breakouts up in a downtrend fake out more often.
+_DOWNTREND_MULT = {
+    # Trend-following: still full weight (a fresh trend signal in a bear
+    # regime is by definition either continuation or a real turning point)
+    "MACD(12,26,9)":         1.5,
+    "MACD hist flip":        1.5,
+    "EMA9 vs EMA21":         1.3,
+    "Golden/Death cross":    1.5,
+    "ADX(14)":               1.5,
+    "20d high break":        1.5,
+    "20d low break":         1.5,
+    # Mean-reversion: FADED HARDER than in uptrend (terminal bear=0.3 col)
+    "RSI(14)":               0.15,
+    "Stoch %K/%D":           0.15,
+    "Williams %R(14)":       0.15,
+    "Close z(20)":           0.25,
+    "MFI(14)":               0.4,
+    # Bollinger asymmetry — breakouts UP in a downtrend are fakeouts;
+    # breakdowns confirm the regime.
+    "Bollinger breakout up": 0.7,
+    "Bollinger breakdown":   1.5,
+    # Candle reversals: usable but keep humble in bear (many failed bounces)
+    "Candle: bullish_engulfing": 0.7,
+    "Candle: hammer":            0.7,
+    "Candle: morning_star":      0.9,
+    "Candle: bearish_engulfing": 1.3,
+    "Candle: shooting_star":     1.3,
+    "Candle: evening_star":      1.3,
 }
 
 _CHOP_MULT = {
@@ -88,8 +125,10 @@ def _multiplier_for(indicator: str, trend_regime: TrendRegime,
     Falls back to 1.0 for anything unknown so we don't accidentally zero
     out new indicators that get added later.
     """
-    if trend_regime in ("uptrend", "downtrend"):
-        base = _TREND_MULT.get(indicator, 1.0)
+    if trend_regime == "uptrend":
+        base = _UPTREND_MULT.get(indicator, 1.0)
+    elif trend_regime == "downtrend":
+        base = _DOWNTREND_MULT.get(indicator, 1.0)
     elif trend_regime == "chop":
         base = _CHOP_MULT.get(indicator, 1.0)
     else:

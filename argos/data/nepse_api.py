@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from typing import Any
 
 import requests
@@ -27,6 +28,14 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BASE = "https://nepse.nandisolutions.com"
 DEFAULT_TIMEOUT = 20
+
+# In-process snapshot cache: the snapshot is expensive (~2.7s) and every
+# ensemble source pulls from it. One forecast triggers 17 identical fetches
+# without this. Cache lives for _SNAPSHOT_TTL seconds since the snapshot
+# only changes tick-to-tick and this is a research desk, not an execution
+# path. Set _SNAPSHOT_TTL to 0 to disable.
+_SNAPSHOT_TTL = float(os.environ.get("NEPSE_SNAPSHOT_TTL_S", "300"))
+_snapshot_cache: dict[str, Any] = {"data": None, "ts": 0.0}
 
 
 def get_base_url() -> str:
@@ -39,8 +48,15 @@ def fetch_market_snapshot(refresh: bool = False,
 
     Args:
         refresh: append ?refresh=true to force the upstream to skip its cache.
+                 Also bypasses our local in-process cache.
         timeout: HTTP timeout seconds.
     """
+    now = time.monotonic()
+    if (not refresh and _SNAPSHOT_TTL > 0
+            and _snapshot_cache["data"] is not None
+            and now - _snapshot_cache["ts"] < _SNAPSHOT_TTL):
+        return _snapshot_cache["data"]
+
     url = f"{get_base_url()}/api/nepse/market"
     if refresh:
         url += "?refresh=true"
@@ -49,7 +65,15 @@ def fetch_market_snapshot(refresh: bool = False,
     data = resp.json()
     if not data.get("success"):
         raise RuntimeError(f"NEPSE API returned success=false: {data}")
+    _snapshot_cache["data"] = data
+    _snapshot_cache["ts"] = now
     return data
+
+
+def clear_snapshot_cache() -> None:
+    """Wipe the in-process snapshot cache. Tests + backtests only."""
+    _snapshot_cache["data"] = None
+    _snapshot_cache["ts"] = 0.0
 
 
 def _index(items_by_symbol: dict, symbol: str) -> dict | None:

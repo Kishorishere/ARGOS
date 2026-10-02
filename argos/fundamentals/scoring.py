@@ -72,6 +72,60 @@ def compute_f_score(symbol: str) -> Optional[dict]:
     }
 
 
+# Terminal's bank-specific hard-reject thresholds (`alpha_practical.py:91-156`).
+# Nepal Rastra Bank regulatory minimum for CAR is 8.5%; NPL above 6% is a
+# distress signal; and a negative net_profit quarter should never be sized
+# into. These are hard gates, not soft F-score inputs — a stock failing any
+# of them is a NO, regardless of how good the technicals look.
+MIN_CAPITAL_ADEQUACY_PCT = 8.5
+MAX_NPL_PCT = 6.0
+
+_BANK_SECTORS = {
+    "Commercial Banks", "Development Banks", "Finance Companies",
+    "Microfinance", "Banking",
+}
+
+
+def hard_reject(symbol: str) -> Optional[dict]:
+    """Return {"rejected": True, "reasons": [...]} if the latest quarterly
+    filing fails a hard-reject gate. Returns None when data isn't available
+    (defer to soft F-score) or the ticker isn't a bank (rules don't apply).
+
+    Never returns "not rejected" as a positive — absence of return means
+    the caller should proceed with normal scoring.
+    """
+    reports = sorted(load_reports(symbol), key=lambda r: r.quarter)
+    if not reports:
+        return None
+    curr = reports[-1]
+
+    reasons: list[str] = []
+    # Applies to any issuer:
+    if curr.net_profit_npr < 0:
+        reasons.append(f"net_profit={curr.net_profit_npr:,.0f} NPR (negative quarter)")
+    # Bank-specific:
+    if curr.sector in _BANK_SECTORS:
+        if curr.cap_adequacy_pct and curr.cap_adequacy_pct < MIN_CAPITAL_ADEQUACY_PCT:
+            reasons.append(
+                f"CAR={curr.cap_adequacy_pct:.2f}% below regulatory floor "
+                f"{MIN_CAPITAL_ADEQUACY_PCT}%"
+            )
+        if curr.npl_ratio_pct and curr.npl_ratio_pct > MAX_NPL_PCT:
+            reasons.append(
+                f"NPL={curr.npl_ratio_pct:.2f}% above distress threshold "
+                f"{MAX_NPL_PCT}%"
+            )
+    if not reasons:
+        return None
+    return {
+        "symbol": symbol,
+        "quarter": curr.quarter,
+        "sector": curr.sector,
+        "rejected": True,
+        "reasons": reasons,
+    }
+
+
 def sector_rank(symbol: str) -> Optional[dict]:
     """Percentile rank of `symbol` within its sector on 4 key metrics.
 

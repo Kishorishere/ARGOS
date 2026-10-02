@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from argos.fundamentals import hard_reject
 from argos.model_router import get_llm
 from argos.portfolio.sizing import SizingInputs, compute_size
 from argos.schemas import FinalDecision
@@ -20,6 +21,13 @@ from argos.state import FuseState
 logger = logging.getLogger(__name__)
 
 PROMPT_PATH = Path(__file__).parents[2] / "prompts" / "portfolio_manager.md"
+
+# Terminal defaults (`LONG_TERM_CONFIG` in nepse-quant-terminal). Applied
+# to every fresh BUY that the LLM doesn't override with a specific value.
+# These match the audited horizon: 40-day hold, -8% hard stop, -10% trail.
+DEFAULT_HOLD_BARS = 40
+DEFAULT_STOP_PCT = 0.08
+DEFAULT_TRAIL_ATR = 3.0     # Chandelier-style trail: 3×ATR (~10% at 3% ATR)
 
 
 def _load_prompt() -> str:
@@ -86,12 +94,33 @@ def _build_debate_summary(state: FuseState) -> str:
 def portfolio_manager_node(state: FuseState) -> dict:
     """Run the Portfolio Manager agent — final synthesis."""
     agent_name = "portfolio_manager"
+    ticker = state["ticker"]
     logger.info(
         "Running %s for %s as of %s",
         agent_name,
-        state["ticker"],
+        ticker,
         state["as_of_date"],
     )
+
+    # ── Bank fundamentals hard-reject (item 5) ──────────────────────
+    # If the latest quarterly filing fails a regulatory / distress gate
+    # (CAR < 8.5%, NPL > 6%, negative net profit), skip the LLM and emit
+    # a forced HOLD. Applies to banks, dev-banks, finance cos, MFI.
+    reject = hard_reject(ticker)
+    if reject and reject.get("rejected"):
+        why = "; ".join(reject.get("reasons") or [])
+        logger.info("%s HARD-REJECT %s (%s): %s",
+                    agent_name, ticker, reject.get("quarter", "?"), why)
+        return {
+            "final_decision": {
+                "action": "hold",
+                "confidence": 0.0,
+                "position_size": 0.0,
+                "rationale": f"Hard-reject: {why}",
+                "dissent_notes": (f"Fundamentals hard-reject (sector "
+                                  f"{reject.get('sector')}): {why}"),
+            },
+        }
 
     try:
         llm = get_llm(agent_name)
@@ -119,7 +148,7 @@ def portfolio_manager_node(state: FuseState) -> dict:
         if judge:
             judge_block = (
                 f"## Blind Judge Verdict (bias-corrected — weight this heavily)\n"
-                f"Winner (blind): {judge.get('winner')}  →  actual side: {judge.get('winner_side')}\n"
+                f"Winner (blind): {judge.get('winner')}  ->  actual side: {judge.get('winner_side')}\n"
                 f"Confidence: {judge.get('confidence', 0):.2f}\n"
                 f"Key factor: {judge.get('key_factor', '')}\n"
                 f"Reasoning: {judge.get('reasoning', '')}\n\n"
@@ -192,8 +221,23 @@ def portfolio_manager_node(state: FuseState) -> dict:
         decision_dict["sizing_trace"] = kelly_out
         decision_dict["sizing_llm_original"] = llm_size
 
+        # ── Item 6: inject terminal-style hold/stop/trail defaults on BUY ──
+        # Only fill fields the LLM left null. The LLM keeps authority to
+        # override with a specific, reasoned value.
+        if decision_dict["action"] == "buy" and decision_dict["position_size"] > 0:
+            if decision_dict.get("stop_loss_pct") is None:
+                decision_dict["stop_loss_pct"] = DEFAULT_STOP_PCT
+            if decision_dict.get("trailing_stop_atr") is None:
+                decision_dict["trailing_stop_atr"] = DEFAULT_TRAIL_ATR
+            if decision_dict.get("time_stop_bars") is None:
+                decision_dict["time_stop_bars"] = DEFAULT_HOLD_BARS
+            if decision_dict.get("take_profit_pct") is None:
+                # Terminal doesn't run a hard target; leaving None keeps the
+                # trail as the only upside limit.
+                pass
+
         logger.info(
-            "%s decision: %s (conf %.2f)  |  size: LLM %.3f → Kelly %.3f  (edge %+.2f%%, agreement %.2f)",
+            "%s decision: %s (conf %.2f)  |  size: LLM %.3f -> Kelly %.3f  (edge %+.2f%%, agreement %.2f)",
             agent_name, decision_dict["action"], decision_dict["confidence"],
             llm_size, kelly_out["size"], kelly_out.get("edge_pct", 0),
             kelly_out.get("agent_agreement", 0),

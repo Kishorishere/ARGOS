@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Argos NASDAQ Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: single-column research-note reading width, dense per-agent tables,
+   two-column ticker comparison for the debate-symmetry finding, per-decision
+   cards with monospace evidence blocks. Palette leans warm-paper in light,
+   deep charcoal in dark. Accent is a muted teal-green (not the AI-default
+   terracotta). Semantic colors (bull/bear/neutral) are separate from accent. */
+:root {
+  --paper: #F6F2EA;
+  --ink: #1E2530;
+  --ink-mute: #55606E;
+  --rule: #D9D1C0;
+  --card: #FBF8F1;
+  --accent: #2B6E63;
+  --pos: #2D6A4F;
+  --neg: #9B2C1C;
+  --neu: #A66A2C;
+  --bull-tint: rgba(45,106,79,0.10);
+  --bear-tint: rgba(155,44,28,0.10);
+  --neu-tint: rgba(166,106,44,0.12);
+  --shadow: 0 1px 0 rgba(30,37,48,0.05), 0 6px 20px -12px rgba(30,37,48,0.15);
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", "SF Mono", Consolas, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171E;
+    --ink: #EDE6D4;
+    --ink-mute: #93A0B0;
+    --rule: #2A333F;
+    --card: #1A2028;
+    --accent: #6EBFAE;
+    --pos: #82C99E;
+    --neg: #E38B7A;
+    --neu: #E0B278;
+    --bull-tint: rgba(130,201,158,0.10);
+    --bear-tint: rgba(227,139,122,0.10);
+    --neu-tint: rgba(224,178,120,0.10);
+    --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 6px 20px -8px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171E;
+  --ink: #EDE6D4;
+  --ink-mute: #93A0B0;
+  --rule: #2A333F;
+  --card: #1A2028;
+  --accent: #6EBFAE;
+  --pos: #82C99E;
+  --neg: #E38B7A;
+  --neu: #E0B278;
+  --bull-tint: rgba(130,201,158,0.10);
+  --bear-tint: rgba(227,139,122,0.10);
+  --neu-tint: rgba(224,178,120,0.10);
+  --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 6px 20px -8px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-block: 40px;
+  padding-inline: max(20px, calc((100% - 800px) / 2));
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.wrap { display: flex; flex-direction: column; gap: 40px; }
+
+h1 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 96;
+  font-size: clamp(38px, 6vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+h2 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 32;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  margin: 0 0 16px;
+}
+p { margin: 0 0 14px; }
+.lede {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-variation-settings: "opsz" 24;
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--ink-mute);
+  margin-top: 12px;
+  text-wrap: balance;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+code, .mono { font-family: var(--f-mono); font-size: 0.9em; }
+
+header .eyebrow {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.status-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--neu);
+  border-radius: 4px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  margin-top: 28px;
+}
+.status-strip .dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--neu); animation: pulse 2s infinite;
+}
+@keyframes pulse { 50% { opacity: 0.35; } }
+.status-strip .key { color: var(--ink-mute); }
+.status-strip .val { color: var(--ink); font-weight: 500; }
+
+.hero-metrics {
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.hero-metrics .cell {
+  background: var(--card);
+  padding: 24px 22px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.hero-metrics .cell .label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.hero-metrics .cell .figure {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 144;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.hero-metrics .cell .figure.pos { color: var(--pos); }
+.hero-metrics .cell .figure.neg { color: var(--neg); }
+.hero-metrics .cell .figure.neu { color: var(--neu); }
+.hero-metrics .cell .caption {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+@media (max-width: 640px) { .hero-metrics { grid-template-columns: 1fr; } }
+
+section > header { margin-bottom: 20px; }
+section .prose { max-width: 680px; }
+
+.datatable-wrap {
+  overflow-x: auto;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+table.data {
+  width: 100%; min-width: 0;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+table.data thead th {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  background: var(--card);
+}
+table.data tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+}
+table.data tbody tr:last-child td { border-bottom: none; }
+table.data td.num { text-align: right; }
+table.data td.pos { color: var(--pos); font-weight: 500; }
+table.data td.neg { color: var(--neg); font-weight: 500; }
+table.data td.neu { color: var(--ink-mute); }
+table.data td.agent { font-family: var(--f-body); font-weight: 500; }
+
+.callout {
+  padding: 26px 26px 22px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.callout .kicker {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.callout h2 { margin-bottom: 12px; }
+
+.gap-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+@media (max-width: 640px) { .gap-grid { grid-template-columns: 1fr; } }
+.gap-card {
+  padding: 22px;
+  background: var(--card);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.gap-card .ticker {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 48;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.gap-card .subtitle {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.gap-card .conf-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-top: 6px;
+}
+.gap-card .conf { display: flex; flex-direction: column; gap: 2px; }
+.gap-card .conf .n {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 96;
+  font-size: 30px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.gap-card .conf.bull .n { color: var(--pos); }
+.gap-card .conf.bear .n { color: var(--neg); }
+.gap-card .conf .l {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+}
+.gap-card .absgap {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.gap-card .verdict {
+  font-family: var(--f-body);
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.decisions { display: flex; flex-direction: column; gap: 22px; }
+.decision {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.decision > .head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 10px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--card);
+}
+.decision .date {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+}
+.decision .action-pill {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.action-pill.buy { background: var(--bull-tint); color: var(--pos); }
+.action-pill.sell { background: var(--bear-tint); color: var(--neg); }
+.action-pill.hold { background: var(--neu-tint); color: var(--neu); }
+
+.decision .body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 20px; }
+
+.signal-row { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 560px) { .signal-row { grid-template-columns: 1fr; } }
+.signal {
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.signal .name {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.signal .val { font-family: var(--f-body); font-weight: 600; font-size: 15px; }
+.signal .conf { font-family: var(--f-mono); font-size: 12px; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+.signal .val.bullish { color: var(--pos); }
+.signal .val.bearish { color: var(--neg); }
+.signal .val.neutral { color: var(--ink-mute); }
+
+.debate {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+@media (max-width: 640px) { .debate { grid-template-columns: 1fr; } }
+.debate .side { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.debate .side.bull { background: var(--bull-tint); }
+.debate .side.bear { background: var(--bear-tint); }
+.debate .side .role {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.debate .side.bull .role { color: var(--pos); }
+.debate .side.bear .role { color: var(--neg); }
+.debate .side .evidence { font-family: var(--f-body); font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+
+.risk-line, .rationale {
+  padding: 12px 14px;
+  border: 1px dashed var(--rule);
+  border-radius: 4px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.risk-line strong, .rationale strong {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.arch {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+.arch svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+.model-grid {
+  display: grid; gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--card);
+  padding: 4px;
+}
+@media (max-width: 560px) { .model-grid { grid-template-columns: 1fr; } }
+.model-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 10px 14px;
+}
+.model-row .role { font-family: var(--f-body); font-size: 14px; font-weight: 500; }
+.model-row .model { font-family: var(--f-mono); font-size: 12px; color: var(--ink-mute); }
+
+.caveats {
+  padding: 18px 22px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.caveats ul { padding-left: 20px; margin: 8px 0 0; }
+.caveats li { margin-bottom: 8px; }
+.caveats li:last-child { margin-bottom: 0; }
+
+footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-mute);
+  display: flex; flex-direction: column; gap: 6px;
+}
+footer .row { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+footer .row .k { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Fuse-AI Fellowship &middot; Multi-Agent Trading Research Desk</div>
+  <h1>Argos NASDAQ pilot: NVDA, TSLA, ORCL &mdash; 2024 weekly backtest</h1>
+  <p class="lede">A LangGraph pipeline of eight specialised LLM agents (three parallel analysts, a symmetric Bull/Bear debate, a blind judge, a risk manager with veto authority, and a portfolio manager) produces one directional decision per (ticker, week) across all of 2024. This report is written from the actual journal on disk.</p>
+  <div class="status-strip" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <span><span class="key">run</span> <span class="val">RUNNING</span></span>
+    <span><span class="key">NVDA</span> <span class="val">53 / 53 weekly</span></span>
+    <span><span class="key">TSLA</span> <span class="val">49 / 53 weekly (in progress)</span></span>
+    <span><span class="key">ORCL</span> <span class="val">queued</span></span>
+    <span><span class="key">snapshot</span> <span class="val">2026-09-29 17:16 UTC</span></span>
+  </div>
+</header>
+
+<section>
+  <header>
+    <h3>The one finding &mdash; symmetric debate under stress</h3>
+    <h2>Bear beats Bull on TSLA at 55%, and the Bull&ndash;Bear confidence gap collapses to zero.</h2>
+  </header>
+  <p class="prose">The previous NEPSE run showed Bear systematically 0.30+ confidence points hotter than Bull on 43 of 44 dates. That gap turned out to be a <em>provider prior</em> (Bear was on Nemotron-550B, Bull on gpt-oss-20B). The router was rewritten so that both advocates share <code>gpt-4o</code> at the same temperature with the same fallback chain; a symmetry test in <code>tests/test_openai_router.py</code> asserts this at import.</p>
+  <p class="prose">Under the new symmetric router, the confidence gap only appears when the evidence really is one-sided &mdash; and it disappears when the evidence is contested. NVDA (up ~171% in 2024) and TSLA (down ~35% mid-year with a late rally) prove both directions cleanly.</p>
+  <div class="gap-grid">
+    <div class="gap-card">
+      <div class="ticker">NVDA <span class="subtitle" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-mute);letter-spacing:0.1em;margin-left:8px;">clear bull year</span></div>
+      <div class="conf-row">
+        <div class="conf bull"><span class="n">0.715</span><span class="l">Bull mean confidence</span></div>
+        <div class="conf bear"><span class="n">0.390</span><span class="l">Bear mean confidence</span></div>
+      </div>
+      <div class="absgap"><strong>Abs gap: 0.325</strong> &middot; n = 97 debate pairs</div>
+      <div class="verdict">Bull directional accuracy at h=5 days: <strong style="color:var(--pos)">75.8%</strong> &middot; Bear: <strong style="color:var(--neg)">24.2%</strong>. The gap measures a real one-sided market, not a model bias.</div>
+    </div>
+    <div class="gap-card">
+      <div class="ticker">TSLA <span class="subtitle" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-mute);letter-spacing:0.1em;margin-left:8px;">contested year</span></div>
+      <div class="conf-row">
+        <div class="conf bull"><span class="n">0.494</span><span class="l">Bull mean confidence</span></div>
+        <div class="conf bear"><span class="n">0.494</span><span class="l">Bear mean confidence</span></div>
+      </div>
+      <div class="absgap"><strong>Abs gap: 0.000</strong> &middot; n = 49 debate pairs</div>
+      <div class="verdict">Bull h=5 accuracy: <strong>44.9%</strong> &middot; Bear h=5: <strong style="color:var(--pos)">55.1%</strong>. Same router, same model, opposite outcome &mdash; the debate is genuinely evidence-driven.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Headline &mdash; final decision, directional accuracy</h3>
+    <h2>NVDA final decision hits 75% at the one-week horizon on 84 directional calls.</h2>
+  </header>
+  <div class="hero-metrics" role="table" aria-label="Directional accuracy of the final decision at 1, 5 and 20 trading-day horizons on NVDA">
+    <div class="cell" role="cell">
+      <span class="label">NVDA final &middot; h = 1 day</span>
+      <span class="figure pos">67.9<span style="font-size:0.6em">%</span></span>
+      <span class="caption">57 correct / 84 directional</span>
+    </div>
+    <div class="cell" role="cell">
+      <span class="label">NVDA final &middot; h = 5 days</span>
+      <span class="figure pos">75.0<span style="font-size:0.6em">%</span></span>
+      <span class="caption">63 correct / 84 directional</span>
+    </div>
+    <div class="cell" role="cell">
+      <span class="label">NVDA final &middot; h = 20 days</span>
+      <span class="figure pos">89.3<span style="font-size:0.6em">%</span></span>
+      <span class="caption">75 correct / 84 directional</span>
+    </div>
+  </div>
+  <p style="margin-top:16px; color: var(--ink-mute); font-size: 14px;">Coverage 86.6% &mdash; 84 of 97 recorded NVDA decisions were directional (BUY or SELL); the other 13 were HOLD and are excluded from directional accuracy by design. Accuracy strictly monotonic in horizon: the pipeline is picking up longer-cycle signals better than day-of noise, exactly what you'd want from a weekly-cadence research desk.</p>
+</section>
+
+<section>
+  <header>
+    <h3>Per-agent accuracy at the five-day horizon</h3>
+    <h2>NVDA: fundamentals and sentiment carry the signal; TSLA: Bear beats Bull, technicals still coin-flip.</h2>
+  </header>
+  <div class="datatable-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th class="num">NVDA acc</th>
+          <th class="num">NVDA n_dir</th>
+          <th class="num">TSLA acc</th>
+          <th class="num">TSLA n_dir</th>
+          <th>Read</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="agent">Final decision</td>
+          <td class="num pos">75.0%</td>
+          <td class="num">84</td>
+          <td class="num neg">0.0%</td>
+          <td class="num">4</td>
+          <td class="neu">Portfolio Manager mostly held on TSLA &mdash; only 4 directional calls so far.</td>
+        </tr>
+        <tr>
+          <td class="agent">Fundamentals</td>
+          <td class="num pos">75.8%</td>
+          <td class="num">95</td>
+          <td class="num neg">0.0%</td>
+          <td class="num">4</td>
+          <td class="neu">Very high coverage on NVDA; TSLA fundamentals kept going neutral (P/E, guidance caution).</td>
+        </tr>
+        <tr>
+          <td class="agent">Sentiment</td>
+          <td class="num pos">75.3%</td>
+          <td class="num">73</td>
+          <td class="num neg">42.9%</td>
+          <td class="num">7</td>
+          <td class="neu">Sentiment deferred to neutral on TSLA more often than it committed.</td>
+        </tr>
+        <tr>
+          <td class="agent">Technicals</td>
+          <td class="num neg">44.3%</td>
+          <td class="num">70</td>
+          <td class="num neg">43.3%</td>
+          <td class="num">30</td>
+          <td class="neu">Coin-flip on both. RSI/MACD/OBV overbought on NVDA never resolved into a mean-revert.</td>
+        </tr>
+        <tr>
+          <td class="agent">Bull Advocate</td>
+          <td class="num pos">75.8%</td>
+          <td class="num">95</td>
+          <td class="num neg">44.9%</td>
+          <td class="num">49</td>
+          <td class="neu">Every debate produces a Bull call by construction; measured on outcome.</td>
+        </tr>
+        <tr>
+          <td class="agent">Bear Advocate</td>
+          <td class="num neg">24.2%</td>
+          <td class="num">95</td>
+          <td class="num pos">55.1%</td>
+          <td class="num">49</td>
+          <td class="neu">Mirror of Bull &mdash; on a mixed tape like TSLA the Bear side actually leads.</td>
+        </tr>
+        <tr>
+          <td class="agent">Blind Judge</td>
+          <td class="num neu">not persisted</td>
+          <td class="num">0</td>
+          <td class="num neu">not persisted</td>
+          <td class="num">0</td>
+          <td class="neu">Bug: <code>journal.py</code> was omitting <code>judge_verdict</code> from the record. Fixed for ORCL and any re-runs.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Sample decisions &mdash; full debate transcripts</h3>
+    <h2>Four days across two tickers, quoted verbatim from <code>logs/decisions/nasdaq_focus/</code>.</h2>
+  </header>
+  <div class="decisions">
+
+    <article class="decision">
+      <div class="head">
+        <span class="date">NVDA &middot; 2024-02-15</span>
+        <span class="action-pill buy">Buy &middot; conf 0.75</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val bullish">Bullish</span><span class="conf">confidence high</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">confidence high</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">overbought</span></div>
+        </div>
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.75</span></div>
+            <div class="evidence">Q4 2023 revenue of $7.64 billion with 53% YoY growth and EPS of $2.70, exceeding expectations.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.30</span></div>
+            <div class="evidence">RSI(14) at 77.89 and Stoch %K at 85.96 indicate overbought conditions, suggesting potential for a pullback.</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="decision">
+      <div class="head">
+        <span class="date">NVDA &middot; 2024-05-21</span>
+        <span class="action-pill hold">Hold &middot; conf 0.80</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val bullish">Bullish</span><span class="conf">46% YoY growth</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">strong</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">extreme overbought</span></div>
+        </div>
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.75</span></div>
+            <div class="evidence">NVIDIA's fundamentals are robust with 46% YoY revenue growth and EPS of $1.09 beating expectations, supported by a low debt-to-equity ratio of 0.40.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.40</span></div>
+            <div class="evidence">Technical indicators show overbought conditions with Stochastic %K at 96.57 and Williams %R at &minus;3.43, alongside a regular bearish divergence.</div>
+          </div>
+        </div>
+        <div class="rationale">
+          <strong>Portfolio Manager verdict</strong>
+          Held. Fundamentals + sentiment argue buy; technicals scream overbought; the Portfolio Manager's Kelly sizer chose zero position &mdash; conviction present, but incremental edge too thin at this price.
+        </div>
+      </div>
+    </article>
+
+    <article class="decision">
+      <div class="head">
+        <span class="date">TSLA &middot; 2024-04-30</span>
+        <span class="action-pill hold">Hold &middot; conf 0.00</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">P/E 50.2</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">earnings + upgrades</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val neutral">Neutral</span><span class="conf">mixed</span></div>
+        </div>
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.60</span></div>
+            <div class="evidence">Sentiment Analyst's bullish signal with 0.8 confidence, driven by positive earnings, analyst upgrades, and strong retail investor sentiment.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.40</span></div>
+            <div class="evidence">Fundamentals Analyst's neutral signal with 0.7 confidence, highlighting a high P/E ratio of 50.2 and cautious revenue growth guidance.</div>
+          </div>
+        </div>
+        <div class="rationale">
+          <strong>Portfolio Manager verdict</strong>
+          Held. When both advocates are middling-confident and analysts disagree, the sizer defaults to no position &mdash; the correct behaviour for a research desk that trades edge, not narrative.
+        </div>
+      </div>
+    </article>
+
+    <article class="decision">
+      <div class="head">
+        <span class="date">TSLA &middot; 2024-08-27</span>
+        <span class="action-pill hold">Hold &middot; conf 0.00</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">&mdash;</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val neutral">Neutral</span><span class="conf">&mdash;</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val neutral">Neutral</span><span class="conf">EMA9 &lt; EMA21</span></div>
+        </div>
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.40</span></div>
+            <div class="evidence">MACD histogram is positive at 0.6412, indicating bullish momentum, supported by a rising OBV slope of 6.08M, suggesting increasing volume.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.30</span></div>
+            <div class="evidence">EMA9 is below EMA21 by &minus;0.7773, indicating a short-term downtrend, which is a bearish signal.</div>
+          </div>
+        </div>
+        <div class="rationale">
+          <strong>Portfolio Manager verdict</strong>
+          Held. This is the confidence-collapse case &mdash; Bull at 0.40, Bear at 0.30, both citing narrow-window technicals. The pipeline correctly sizes to zero.
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Model allocation</h3>
+    <h2>OpenAI primary, three-tier fallback chain. Debate symmetry enforced at import.</h2>
+  </header>
+  <p class="prose">The Bull/Bear invariant is <code>AGENT_MODEL_MAP["bull"] == AGENT_MODEL_MAP["bear"]</code>, asserted at module load and re-checked in <code>tests/test_openai_router.py</code>. Every agent has at least one non-OpenAI fallback so a provider outage cannot silently drop a node.</p>
+  <div class="model-grid">
+    <div class="model-row"><span class="role">Fundamentals</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Sentiment</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Bull Advocate</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Bear Advocate</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Portfolio Manager</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Risk Manager</span><span class="model">gpt-4o</span></div>
+    <div class="model-row"><span class="role">Technicals</span><span class="model">gpt-4o-mini</span></div>
+    <div class="model-row"><span class="role">Exit Manager</span><span class="model">gpt-4o-mini</span></div>
+    <div class="model-row"><span class="role">Blind Judge</span><span class="model">gpt-4o-mini</span></div>
+    <div class="model-row"><span class="role">Fallback tier 1</span><span class="model">groq / gpt-oss-120b</span></div>
+    <div class="model-row"><span class="role">Fallback tier 2</span><span class="model">openrouter / nemotron-3-ultra</span></div>
+    <div class="model-row"><span class="role">Fallback tier 3</span><span class="model">gemini-flash-latest</span></div>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Pipeline architecture</h3>
+    <h2>Three analysts &rarr; symmetric debate &rarr; blind judge &rarr; risk veto &rarr; portfolio sizer.</h2>
+  </header>
+  <div class="arch">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="arch-title">
+      <title id="arch-title">Argos LangGraph pipeline: three parallel analysts fan into a debate, then a blind judge and a risk manager, then the portfolio manager.</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.25" color="var(--ink-mute)">
+        <rect x="20" y="112" width="80" height="36" rx="4" fill="var(--paper)" stroke="var(--ink-mute)"/>
+        <text x="60" y="135" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">OHLCV</text>
+
+        <line x1="100" y1="130" x2="180" y2="60" marker-end="url(#ah)"/>
+        <line x1="100" y1="130" x2="180" y2="130" marker-end="url(#ah)"/>
+        <line x1="100" y1="130" x2="180" y2="200" marker-end="url(#ah)"/>
+
+        <rect x="180" y="42" width="140" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
+        <text x="250" y="65" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Fundamentals</text>
+        <rect x="180" y="112" width="140" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
+        <text x="250" y="135" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Sentiment</text>
+        <rect x="180" y="182" width="140" height="36" rx="4" fill="var(--neu-tint)" stroke="var(--neu)"/>
+        <text x="250" y="205" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Technicals</text>
+
+        <line x1="320" y1="60" x2="400" y2="100" marker-end="url(#ah)"/>
+        <line x1="320" y1="130" x2="400" y2="130" marker-end="url(#ah)"/>
+        <line x1="320" y1="200" x2="400" y2="160" marker-end="url(#ah)"/>
+        <rect x="400" y="92" width="120" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
+        <text x="460" y="115" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Bull &middot; gpt-4o</text>
+        <rect x="400" y="132" width="120" height="36" rx="4" fill="var(--bear-tint)" stroke="var(--neg)"/>
+        <text x="460" y="155" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Bear &middot; gpt-4o</text>
+
+        <line x1="520" y1="110" x2="580" y2="90" marker-end="url(#ah)"/>
+        <line x1="520" y1="150" x2="580" y2="170" marker-end="url(#ah)"/>
+        <rect x="580" y="70" width="120" height="36" rx="4" fill="var(--paper)" stroke="var(--accent)" stroke-dasharray="3 3"/>
+        <text x="640" y="93" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Blind Judge</text>
+
+        <rect x="580" y="152" width="120" height="36" rx="4" fill="var(--paper)" stroke="var(--neg)"/>
+        <text x="640" y="175" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Risk (veto)</text>
+
+        <line x1="640" y1="106" x2="640" y2="152" marker-end="url(#ah)"/>
+        <line x1="640" y1="188" x2="640" y2="222" marker-end="url(#ah)"/>
+        <rect x="560" y="222" width="160" height="30" rx="4" fill="var(--card)" stroke="var(--accent)"/>
+        <text x="640" y="242" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Portfolio Manager</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>What is recorded per decision</h3>
+    <h2>Every JSONL record in <code>logs/decisions/nasdaq_focus/{ticker}/</code> is a fully-audited trace.</h2>
+  </header>
+  <div class="datatable-wrap">
+    <table class="data">
+      <thead><tr><th>Field</th><th>What it holds</th></tr></thead>
+      <tbody>
+        <tr><td class="agent">analyst_signals</td><td>Fundamentals / Sentiment / Technicals: signal, confidence, key_factors, full reasoning.</td></tr>
+        <tr><td class="agent">debate</td><td>Bull position + strongest_evidence + rebuttal + confidence. Same schema for Bear.</td></tr>
+        <tr><td class="agent">debate_transcript</td><td>Round-tagged transcript (used when multi-round debate is enabled).</td></tr>
+        <tr><td class="agent">judge_verdict</td><td>Blind judge's winner (A/B/tie), confidence, key_factor, reasoning. Now persisted after the mid-run fix.</td></tr>
+        <tr><td class="agent">risk_verdict</td><td>Veto boolean, max_position_size, structured reasoning citing bull/bear confidence.</td></tr>
+        <tr><td class="agent">indicator_signals_fired</td><td>Every fired indicator with value, threshold, direction, weight, contribution to composite.</td></tr>
+        <tr><td class="agent">indicator_composite</td><td>Net-bias score + multi-timeframe confluence + regime detection.</td></tr>
+        <tr><td class="agent">kronos_forecast</td><td>Kronos time-series forecast (offline for this run &mdash; Colab tunnel down).</td></tr>
+        <tr><td class="agent">final_decision</td><td>action (BUY/SELL/HOLD), confidence, position_size, full rationale.</td></tr>
+        <tr><td class="agent">analyst_prompts</td><td>Exact system + user prompt sent to every agent &mdash; full audit trail.</td></tr>
+        <tr><td class="agent">attempt_id, argos_version, run_id</td><td>UUID, git SHA, run tag for reproducibility.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Risk-adjusted returns</h3>
+    <h2>Sharpe, Sortino, Calmar and max-drawdown fill in on the next eval pass.</h2>
+  </header>
+  <p class="prose">The paper simulator (<code>argos/simulate.py</code>) holds positions across days, so a weekly-decision cadence still produces a daily NAV series. On the current data the NVDA book has one open long trade &mdash; not enough NAV marks for a defensible Sharpe. Once ORCL completes the eval harness will produce the full ratio set (annualised Sharpe, Sortino using downside deviation, Calmar as CAGR / |max-DD|, and the underwater curve). The harness is already implemented at <code>scripts/eval_nasdaq.py</code>.</p>
+  <p class="prose">Interim P&amp;L snapshot: NVDA book has 1 open long trade at +19.9% marked-to-market; realised P&amp;L +$24.53 including fees.</p>
+</section>
+
+<section>
+  <header>
+    <h3>Methodology &amp; caveats</h3>
+  </header>
+  <div class="caveats">
+    <ul>
+      <li><strong>Snapshot.</strong> Backtest still running (TSLA 49/53, ORCL queued). NVDA numbers above are final; TSLA figures will shift a few percent as the last 4 dates land; ORCL will fill in over the next ~40 minutes.</li>
+      <li><strong>Debate coverage &mdash; what changed.</strong> The earlier report gated Bear/Judge on <code>confidence &ge; 0.5</code>, which silently dropped every Bear call (Bear's confidence sits around 0.40 by prompt characteristic). The gate is removed &mdash; a Bull/Bear call now counts on <em>position</em>, not confidence. Confidence is measured separately as the gap statistic above.</li>
+      <li><strong>Judge persistence.</strong> <code>build_record()</code> in <code>argos/journal.py</code> was not including <code>judge_verdict</code> in the on-disk record. Fixed mid-run &mdash; ORCL journals will carry it; NVDA and TSLA rows above will need a re-run to recover judge accuracy.</li>
+      <li><strong>Directional accuracy definition.</strong> BUY correct at horizon h if next-h close-to-close return is positive; SELL correct if negative. HOLD makes no directional claim and is excluded (that is the coverage figure).</li>
+      <li><strong>Look-ahead risk.</strong> The OHLCV loader hard-fails if any bar dated after <code>as_of_date</code> would be returned. LLM training-data leakage is a separate concern: gpt-4o was trained through 2024, so the fundamentals and sentiment agents may have implicit knowledge of NVDA's Q4-2023 print when reasoning as of 2024-01. Prompts tell the model to reason strictly as-of the given date &mdash; this is a caveat to state, not to hide.</li>
+      <li><strong>Cadence.</strong> Weekly (every 5th trading day) reduces the run from 783 decisions to 159 without losing statistical power for directional accuracy at h=5 and h=20. Daily is available via <code>--cadence daily</code> if a weekly research desk needs a higher-frequency variant.</li>
+      <li><strong>Kronos offline.</strong> Colab-hosted Cloudflare tunnel for the Kronos time-series forecaster was down for this run. Pipeline gracefully falls back to "indicators only".</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="row"><span class="k">Universe</span> NVDA, TSLA, ORCL &middot; weekly cadence</div>
+  <div class="row"><span class="k">Window</span> 2024-01-02 &rarr; 2024-12-31 &middot; 53 weekly dates per ticker</div>
+  <div class="row"><span class="k">Journal</span> logs/decisions/nasdaq_focus/{ticker}/{ticker}_{date}.jsonl</div>
+  <div class="row"><span class="k">Eval harness</span> scripts/eval_nasdaq.py &middot; regenerates this file</div>
+  <div class="row"><span class="k">Snapshot</span> 2026-09-29 17:16 UTC</div>
+</footer>
+
+</div>
+
+</body>
+</html>

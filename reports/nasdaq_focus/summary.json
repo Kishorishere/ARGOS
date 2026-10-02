@@ -1,0 +1,521 @@
+[
+  {
+    "ticker": "NVDA",
+    "n_records": 97,
+    "n_errors": 0,
+    "sharpe": null,
+    "sortino": null,
+    "max_dd": null,
+    "calmar": null,
+    "confidence_gap": {
+      "n": 97,
+      "bull_mean": 0.715,
+      "bear_mean": 0.39,
+      "abs_gap": 0.326
+    },
+    "simulate_stats": {
+      "wins": 1,
+      "losses": 0,
+      "hit_rate_pct": 100.0,
+      "avg_holding_return_pct": 182.103,
+      "final_cash": 100233.6,
+      "final_equity_incl_open": 100233.6,
+      "return_pct": 0.234,
+      "total_fees_paid": 2.22,
+      "total_cgt_paid": 19.12,
+      "breakeven_per_trade_pct": 0.83,
+      "fee_mode": "nepal",
+      "exits_by_reason": {
+        "end_of_window": 1
+      }
+    },
+    "per_agent_directional": {
+      "final": {
+        "1": {
+          "accuracy": 0.5714285714285714,
+          "coverage": 0.865979381443299,
+          "n_directional": 84,
+          "n_correct": 48
+        },
+        "5": {
+          "accuracy": 0.75,
+          "coverage": 0.865979381443299,
+          "n_directional": 84,
+          "n_correct": 63
+        },
+        "20": {
+          "accuracy": 0.75,
+          "coverage": 0.865979381443299,
+          "n_directional": 84,
+          "n_correct": 63
+        }
+      },
+      "fundamentals": {
+        "1": {
+          "accuracy": 0.5684210526315789,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 54
+        },
+        "5": {
+          "accuracy": 0.7578947368421053,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 72
+        },
+        "20": {
+          "accuracy": 0.7473684210526316,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 71
+        }
+      },
+      "sentiment": {
+        "1": {
+          "accuracy": 0.5205479452054794,
+          "coverage": 0.7525773195876289,
+          "n_directional": 73,
+          "n_correct": 38
+        },
+        "5": {
+          "accuracy": 0.7534246575342466,
+          "coverage": 0.7525773195876289,
+          "n_directional": 73,
+          "n_correct": 55
+        },
+        "20": {
+          "accuracy": 0.684931506849315,
+          "coverage": 0.7525773195876289,
+          "n_directional": 73,
+          "n_correct": 50
+        }
+      },
+      "technicals": {
+        "1": {
+          "accuracy": 0.5285714285714286,
+          "coverage": 0.7216494845360825,
+          "n_directional": 70,
+          "n_correct": 37
+        },
+        "5": {
+          "accuracy": 0.44285714285714284,
+          "coverage": 0.7216494845360825,
+          "n_directional": 70,
+          "n_correct": 31
+        },
+        "20": {
+          "accuracy": 0.4,
+          "coverage": 0.7216494845360825,
+          "n_directional": 70,
+          "n_correct": 28
+        }
+      },
+      "judge": {
+        "1": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "5": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "20": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        }
+      },
+      "bull": {
+        "1": {
+          "accuracy": 0.5684210526315789,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 54
+        },
+        "5": {
+          "accuracy": 0.7578947368421053,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 72
+        },
+        "20": {
+          "accuracy": 0.7473684210526316,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 71
+        }
+      },
+      "bear": {
+        "1": {
+          "accuracy": 0.43157894736842106,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 41
+        },
+        "5": {
+          "accuracy": 0.24210526315789474,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 23
+        },
+        "20": {
+          "accuracy": 0.25263157894736843,
+          "coverage": 0.979381443298969,
+          "n_directional": 95,
+          "n_correct": 24
+        }
+      }
+    }
+  },
+  {
+    "ticker": "TSLA",
+    "n_records": 53,
+    "n_errors": 0,
+    "sharpe": null,
+    "sortino": null,
+    "max_dd": null,
+    "calmar": null,
+    "confidence_gap": {
+      "n": 53,
+      "bull_mean": 0.496,
+      "bear_mean": 0.494,
+      "abs_gap": 0.002
+    },
+    "simulate_stats": {
+      "wins": 1,
+      "losses": 0,
+      "hit_rate_pct": 100.0,
+      "avg_holding_return_pct": 63.746,
+      "final_cash": 100005.79,
+      "final_equity_incl_open": 100005.79,
+      "return_pct": 0.006,
+      "total_fees_paid": 0.11,
+      "total_cgt_paid": 0.48,
+      "breakeven_per_trade_pct": 0.83,
+      "fee_mode": "nepal",
+      "exits_by_reason": {
+        "end_of_window": 1
+      }
+    },
+    "per_agent_directional": {
+      "final": {
+        "1": {
+          "accuracy": 0.25,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 1
+        },
+        "5": {
+          "accuracy": 0.0,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 0
+        },
+        "20": {
+          "accuracy": 0.25,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 1
+        }
+      },
+      "fundamentals": {
+        "1": {
+          "accuracy": 0.25,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 1
+        },
+        "5": {
+          "accuracy": 0.0,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 0
+        },
+        "20": {
+          "accuracy": 0.25,
+          "coverage": 0.07547169811320754,
+          "n_directional": 4,
+          "n_correct": 1
+        }
+      },
+      "sentiment": {
+        "1": {
+          "accuracy": 0.375,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 3
+        },
+        "5": {
+          "accuracy": 0.5,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 4
+        },
+        "20": {
+          "accuracy": 0.375,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 3
+        }
+      },
+      "technicals": {
+        "1": {
+          "accuracy": 0.3939393939393939,
+          "coverage": 0.6226415094339622,
+          "n_directional": 33,
+          "n_correct": 13
+        },
+        "5": {
+          "accuracy": 0.42424242424242425,
+          "coverage": 0.6226415094339622,
+          "n_directional": 33,
+          "n_correct": 14
+        },
+        "20": {
+          "accuracy": 0.5757575757575758,
+          "coverage": 0.6226415094339622,
+          "n_directional": 33,
+          "n_correct": 19
+        }
+      },
+      "judge": {
+        "1": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "5": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "20": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        }
+      },
+      "bull": {
+        "1": {
+          "accuracy": 0.4339622641509434,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 23
+        },
+        "5": {
+          "accuracy": 0.4339622641509434,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 23
+        },
+        "20": {
+          "accuracy": 0.5283018867924528,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 28
+        }
+      },
+      "bear": {
+        "1": {
+          "accuracy": 0.5660377358490566,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 30
+        },
+        "5": {
+          "accuracy": 0.5660377358490566,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 30
+        },
+        "20": {
+          "accuracy": 0.4716981132075472,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 25
+        }
+      }
+    }
+  },
+  {
+    "ticker": "ORCL",
+    "n_records": 53,
+    "n_errors": 0,
+    "sharpe": null,
+    "sortino": null,
+    "max_dd": null,
+    "calmar": null,
+    "confidence_gap": {
+      "n": 53,
+      "bull_mean": 0.508,
+      "bear_mean": 0.477,
+      "abs_gap": 0.031
+    },
+    "simulate_stats": {
+      "wins": 1,
+      "losses": 0,
+      "hit_rate_pct": 100.0,
+      "avg_holding_return_pct": 39.351,
+      "final_cash": 100021.24,
+      "final_equity_incl_open": 100021.24,
+      "return_pct": 0.021,
+      "total_fees_paid": 0.6,
+      "total_cgt_paid": 1.77,
+      "breakeven_per_trade_pct": 0.83,
+      "fee_mode": "nepal",
+      "exits_by_reason": {
+        "end_of_window": 1
+      }
+    },
+    "per_agent_directional": {
+      "final": {
+        "1": {
+          "accuracy": 0.4444444444444444,
+          "coverage": 0.16981132075471697,
+          "n_directional": 9,
+          "n_correct": 4
+        },
+        "5": {
+          "accuracy": 0.6666666666666666,
+          "coverage": 0.16981132075471697,
+          "n_directional": 9,
+          "n_correct": 6
+        },
+        "20": {
+          "accuracy": 0.6666666666666666,
+          "coverage": 0.16981132075471697,
+          "n_directional": 9,
+          "n_correct": 6
+        }
+      },
+      "fundamentals": {
+        "1": {
+          "accuracy": 0.5,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 4
+        },
+        "5": {
+          "accuracy": 0.875,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 7
+        },
+        "20": {
+          "accuracy": 0.75,
+          "coverage": 0.1509433962264151,
+          "n_directional": 8,
+          "n_correct": 6
+        }
+      },
+      "sentiment": {
+        "1": {
+          "accuracy": 0.5,
+          "coverage": 0.03773584905660377,
+          "n_directional": 2,
+          "n_correct": 1
+        },
+        "5": {
+          "accuracy": 1.0,
+          "coverage": 0.03773584905660377,
+          "n_directional": 2,
+          "n_correct": 2
+        },
+        "20": {
+          "accuracy": 0.5,
+          "coverage": 0.03773584905660377,
+          "n_directional": 2,
+          "n_correct": 1
+        }
+      },
+      "technicals": {
+        "1": {
+          "accuracy": 0.42105263157894735,
+          "coverage": 0.7169811320754716,
+          "n_directional": 38,
+          "n_correct": 16
+        },
+        "5": {
+          "accuracy": 0.5263157894736842,
+          "coverage": 0.7169811320754716,
+          "n_directional": 38,
+          "n_correct": 20
+        },
+        "20": {
+          "accuracy": 0.4473684210526316,
+          "coverage": 0.7169811320754716,
+          "n_directional": 38,
+          "n_correct": 17
+        }
+      },
+      "judge": {
+        "1": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "5": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        },
+        "20": {
+          "accuracy": null,
+          "coverage": 0.0,
+          "n_directional": 0,
+          "n_correct": 0
+        }
+      },
+      "bull": {
+        "1": {
+          "accuracy": 0.5849056603773585,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 31
+        },
+        "5": {
+          "accuracy": 0.5094339622641509,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 27
+        },
+        "20": {
+          "accuracy": 0.5849056603773585,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 31
+        }
+      },
+      "bear": {
+        "1": {
+          "accuracy": 0.41509433962264153,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 22
+        },
+        "5": {
+          "accuracy": 0.49056603773584906,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 26
+        },
+        "20": {
+          "accuracy": 0.41509433962264153,
+          "coverage": 1.0,
+          "n_directional": 53,
+          "n_correct": 22
+        }
+      }
+    }
+  }
+]

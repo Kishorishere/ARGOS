@@ -15,6 +15,7 @@ import json
 import logging
 from pathlib import Path
 
+from argos.data.broker_signals import should_pump_exit
 from argos.indicators import IndicatorSnapshot, compute_snapshot
 from argos.model_router import get_llm
 from argos.schemas import ExitDecision
@@ -59,6 +60,28 @@ def exit_manager_node(state: FuseState) -> dict:
                 agent_name, ticker, state["as_of_date"],
                 position.get("quantity"), position.get("avg_price", 0),
                 position.get("entry_date", "?"))
+
+    # ── Broker pump/circular rule-based override ─────────────────────
+    # Terminal's exit rule (simple_backtest.py:2297-2306): if the position
+    # has been open >=5 bars AND today's floorsheet flags a pump or
+    # circular pattern, exit at market — skip the LLM. This is a NEPSE-
+    # specific edge Argos otherwise misses. Silently no-ops when the
+    # sibling broker_signals SQLite is unreachable.
+    bars_held = int(position.get("bars_held", 0))
+    pump_check = should_pump_exit(ticker, state["as_of_date"], bars_held)
+    if pump_check is not None:
+        pump_fires, pump_reason = pump_check
+        if pump_fires:
+            logger.info("%s SHORT-CIRCUIT (pump/circular) %s: %s",
+                        agent_name, ticker, pump_reason)
+            return {
+                "exit_decision": {
+                    "action": "exit_at_market",
+                    "confidence": 0.75,
+                    "reasoning": f"Broker-flow override: {pump_reason}",
+                    "new_stop_pct": None,
+                },
+            }
 
     # Recompute the snapshot for context (may share cache with technicals node)
     ohlcv = (state.get("ohlcv_window") or {}).get("ohlcv") or []

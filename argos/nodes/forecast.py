@@ -341,13 +341,21 @@ def _blend_with_ensemble(hand_tuned: HorizonForecast, ensemble_prob: float,
 
     The hand-tuned code has good defaults but can miss cross-source
     interactions the ensemble captures. We take a weighted average of
-    the two probabilities and update key_drivers to include the top
-    ensemble contributors.
+    the two probabilities, then pass the result through an isotonic
+    calibrator (fit walk-forward on realized 5-bar outcomes) so the
+    downstream `probability_up` field is actually predictive — the audit
+    found raw ensemble p_up=0.9 landed at ~50% hit rate; the calibrator
+    squashes it to ~52-62% honest.
 
     Weighting: 60% ensemble / 40% hand-tuned — the ensemble encodes MORE
     sources so it should dominate; hand-tuned remains as a sanity anchor.
     """
+    from argos.learn.calibration import calibrate_forecast
     blended_p = 0.6 * ensemble_prob + 0.4 * hand_tuned.probability_up
+    blended_p = max(0.05, min(0.95, blended_p))
+    # Isotonic calibration — no-op passthrough if the calibrator
+    # (data/cache/forecast_calibrator.pkl) hasn't been fit yet.
+    blended_p = calibrate_forecast(blended_p)
     blended_p = max(0.05, min(0.95, blended_p))
     if blended_p > 0.55:
         direction = "up"

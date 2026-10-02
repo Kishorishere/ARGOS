@@ -26,6 +26,8 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal
 
+from argos.market import is_nepse
+
 Horizon = Literal["1d", "1w", "1m"]
 
 # Per-source × per-horizon log-odds coefficients. Positive coefficient
@@ -85,6 +87,9 @@ COEFFICIENTS: dict[str, dict[Horizon, float]] = {
     "announcement_drift":  {"1d": 0.15, "1w": 0.40, "1m": 0.25},
     # P31: beta-adjusted return — today's alpha (residual over NEPSE)
     "beta_adjusted_alpha": {"1d": 0.35, "1w": 0.20, "1m": 0.10},
+    # P32: cross-sectional momentum vs universe (6m return minus 1m return,
+    #   ranked among cached tickers). Naturally a slow signal — light 1d, heavy 1m.
+    "xsec_momentum":       {"1d": 0.10, "1w": 0.30, "1m": 0.60},
 }
 
 
@@ -213,9 +218,22 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         _add(contribs, "hurst_regime", -0.5 * (1 if net_bias > 0 else -1),
              horizon, f"Hurst mean-revert ({trend.get('hurst_exponent')})")
 
-    # ── Sector rotation ────────────────────────────────────────────────
+    # ── Cross-sectional momentum (NEPSE-only universe today) ───────────
     ticker = state.get("ticker")
-    if ticker:
+    as_of = state.get("as_of_date")
+    if ticker and as_of and is_nepse():
+        try:
+            from argos.data.universe import xsec_momentum_strength
+            result = xsec_momentum_strength(ticker, as_of)
+            if result is not None:
+                xs_strength, xs_note = result
+                if xs_strength:
+                    _add(contribs, "xsec_momentum", xs_strength, horizon, xs_note)
+        except Exception:
+            pass
+
+    # ── Sector rotation (NEPSE-only feed) ──────────────────────────────
+    if ticker and is_nepse():
         try:
             from argos.data.nepse_sectors import symbol_to_sector, sector_relative_strength, today_sector_scores
             sector = symbol_to_sector(ticker)
@@ -234,29 +252,32 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Market breadth ─────────────────────────────────────────────────
-    try:
-        from argos.data.nepse_api import market_breadth
-        b = market_breadth()
-        ad = b.get("advance_decline_ratio")
-        if ad is not None:
-            # log(A/D) gives a symmetric signal around 1 (neutral)
-            ad_signal = math.log(max(ad, 0.05))
-            _add(contribs, "breadth_ad", ad_signal, horizon,
-                 f"A/D ratio {ad:.2f}")
-    except Exception:
-        pass
+    # ── Market breadth (NEPSE-only feed) ───────────────────────────────
+    if is_nepse():
+        try:
+            from argos.data.nepse_api import market_breadth
+            b = market_breadth()
+            ad = b.get("advance_decline_ratio")
+            if ad is not None:
+                # log(A/D) gives a symmetric signal around 1 (neutral)
+                ad_signal = math.log(max(ad, 0.05))
+                _add(contribs, "breadth_ad", ad_signal, horizon,
+                     f"A/D ratio {ad:.2f}")
+        except Exception:
+            pass
 
-    # ── Macro regime ───────────────────────────────────────────────────
-    try:
-        from argos.data.macro_context import current_regime
-        regime, _reasons = current_regime()
-        if regime == "risk_on":
-            _add(contribs, "macro_regime", 1.0, horizon, "macro risk_on")
-        elif regime == "risk_off":
-            _add(contribs, "macro_regime", -1.0, horizon, "macro risk_off")
-    except Exception:
-        pass
+    # ── Macro regime (NEPSE-only feed for now — US macro would need a
+    #     different data source) ─────────────────────────────────────────
+    if is_nepse():
+        try:
+            from argos.data.macro_context import current_regime
+            regime, _reasons = current_regime()
+            if regime == "risk_on":
+                _add(contribs, "macro_regime", 1.0, horizon, "macro risk_on")
+            elif regime == "risk_off":
+                _add(contribs, "macro_regime", -1.0, horizon, "macro risk_off")
+        except Exception:
+            pass
 
     # ── LLM debate + judge ─────────────────────────────────────────────
     bull_arg = state.get("bull_argument") or {}
@@ -300,9 +321,9 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
     if br2:
         _add(contribs, "bear_ringer", -br2, horizon, f"bear_ringer {br2:.2f}")
 
-    # ── Smart-money (P9 floorsheet) ─────────────────────────────────────
+    # ── Smart-money (P9 floorsheet, NEPSE-only) ────────────────────────
     as_of_date = state.get("as_of_date", "")
-    if ticker:
+    if ticker and is_nepse():
         try:
             from argos.data.floorsheet import smart_money_score
             sm = smart_money_score(ticker, as_of_date, lookback_days=10)
@@ -312,8 +333,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Broker reputation (P21) — WHO is doing the buying/selling? ─────
-    if ticker:
+    # ── Broker reputation (P21, NEPSE-only) — WHO is buying/selling? ───
+    if ticker and is_nepse():
         try:
             from argos.data.broker_reputation import smart_broker_context
             ctx = smart_broker_context(ticker, as_of_date)
@@ -330,8 +351,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Flow analytics (P22-P28) ────────────────────────────────────────
-    if ticker and as_of_date:
+    # ── Flow analytics (P22-P28, NEPSE-only) ────────────────────────────
+    if ticker and as_of_date and is_nepse():
         ohlcv = ((state.get("ohlcv_window") or {}).get("ohlcv")) or []
         try:
             from argos.data.flow_analytics import (
@@ -383,8 +404,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Cross-symbol broker patterns (P29) ─────────────────────────────
-    if ticker and as_of_date:
+    # ── Cross-symbol broker patterns (P29, NEPSE-only) ──────────────────
+    if ticker and as_of_date and is_nepse():
         try:
             from argos.data.broker_patterns import cross_symbol_broker_edge
             xs = cross_symbol_broker_edge(ticker, as_of_date, window_days=5)
@@ -394,8 +415,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Announcement-price gap (P30) ───────────────────────────────────
-    if ticker and as_of_date:
+    # ── Announcement-price gap (P30, NEPSE-only) ────────────────────────
+    if ticker and as_of_date and is_nepse():
         try:
             from argos.data.announcement_reaction import announcement_price_gap
             ohlcv = ((state.get("ohlcv_window") or {}).get("ohlcv")) or []
@@ -406,8 +427,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Beta-adjusted alpha (P31) ──────────────────────────────────────
-    if ticker:
+    # ── Beta-adjusted alpha (P31, NEPSE-only — needs NEPSE index) ──────
+    if ticker and is_nepse():
         try:
             from argos.data.beta_adjusted import beta_adjusted_return_signal
             ohlcv = ((state.get("ohlcv_window") or {}).get("ohlcv")) or []
@@ -418,8 +439,8 @@ def extract_sources(state: dict, horizon: Horizon) -> list[SignalContribution]:
         except Exception:
             pass
 
-    # ── Nepali sentiment (P10) ──────────────────────────────────────────
-    if ticker:
+    # ── Nepali sentiment (P10, NEPSE-only) ──────────────────────────────
+    if ticker and is_nepse():
         try:
             from argos.data.nepali_sentiment import sentiment_score
             ns = sentiment_score(ticker)

@@ -127,14 +127,29 @@ _API_TO_INDEX_NAME: dict[str, str] = {
 }
 
 
+_SECTORS_TTL = float(os.environ.get("NEPSE_SECTORS_TTL_S", "300"))
+_sectors_cache: dict = {"data": None, "ts": 0.0}
+
+
 def fetch_sectors(timeout: int = 15) -> list[dict]:
-    """Return today's sector indices from the NEPSE snapshot API."""
+    """Return today's sector indices from the NEPSE snapshot API.
+
+    In-process TTL cache — same rationale as `nepse_api.fetch_market_snapshot`.
+    """
+    import time as _t
+    now = _t.monotonic()
+    if (_SECTORS_TTL > 0 and _sectors_cache["data"] is not None
+            and now - _sectors_cache["ts"] < _SECTORS_TTL):
+        return _sectors_cache["data"]
     r = requests.get(f"{DEFAULT_BASE}/api/nepse/sectors", timeout=timeout)
     r.raise_for_status()
     d = r.json()
     if not d.get("success"):
         raise RuntimeError(f"nepse sectors API returned success=false: {d}")
-    return d.get("data", [])
+    data = d.get("data", [])
+    _sectors_cache["data"] = data
+    _sectors_cache["ts"] = now
+    return data
 
 
 def snapshot_sectors_today() -> dict:

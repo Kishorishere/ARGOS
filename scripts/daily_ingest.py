@@ -78,6 +78,16 @@ def main() -> int:
         logger.exception("announcements ingest failed: %s", e)
         errors += 1
 
+    logger.info("=== Step 4b: ingest SEBON promoter-sale prior notices ===")
+    try:
+        from argos.data.sebon_disclosures import ingest_sebon_promoter_notices
+        n = ingest_sebon_promoter_notices()
+        logger.info("  → %d SEBON promoter-notice candidates stored", n)
+        steps += 1
+    except Exception as e:
+        logger.exception("SEBON promoter-notice ingest failed: %s", e)
+        errors += 1
+
     logger.info("=== Step 5: full floorsheet ingest ===")
     try:
         from argos.data.floorsheet import (

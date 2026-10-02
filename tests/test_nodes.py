@@ -175,31 +175,32 @@ class TestModelRouter:
         }
         assert set(AGENT_MODEL_MAP.keys()) == expected_agents
 
-    def test_grounded_analysts_use_gemini(self):
-        # Fundamentals + sentiment MUST use Gemini because Google Search
-        # grounding is unique to Gemini among the free providers.
+    def test_grounded_analysts_flag_grounded(self):
+        # Fundamentals + sentiment need live-web grounding. After the NASDAQ
+        # pivot the primary is OpenAI (Responses-API web_search_preview);
+        # Gemini/Google-Search remains in the fallback chain.
         for agent in ("fundamentals", "sentiment"):
             cfg = get_model_config(agent)
-            assert cfg.provider == "gemini", f"{agent} must use Gemini for grounding"
+            assert cfg.provider == "openai", f"{agent} primary must be OpenAI"
             assert cfg.grounded is True
+            # Fallback chain must include at least one grounded backup so a
+            # primary outage doesn't silently drop grounding.
+            assert any(fb.grounded for fb in cfg.fallbacks), \
+                f"{agent} has no grounded fallback (chain={[fb.provider for fb in cfg.fallbacks]})"
 
-    def test_non_grounded_agents_spread_across_providers(self):
-        # The other agents should NOT all pile on Gemini — the whole point
-        # of the multi-provider router is to isolate quota buckets.
-        agents = ("technicals", "bull", "bear", "risk_manager", "portfolio_manager")
-        providers = {get_model_config(a).provider for a in agents}
-        assert "gemini" not in providers or len(providers) > 1, \
-            "at least one non-grounded agent must be off Gemini"
+    def test_debate_symmetry(self):
+        """Bull and Bear share the primary model — the load-bearing invariant
+        after the 44-date NEPSE backtest surfaced the model-prior confidence gap."""
+        b = get_model_config("bull")
+        x = get_model_config("bear")
+        assert b.provider == x.provider
+        assert b.model_name == x.model_name
 
-    def test_every_agent_has_a_gemini_fallback(self):
-        # Fallback to Gemini flash guarantees no agent can silently vanish if
-        # a provider outage happens; only Gemini agents are exempt.
+    def test_every_agent_has_a_fallback_chain(self):
+        # Every agent must have at least one fallback so a primary outage
+        # doesn't silently drop the node.
         for agent, cfg in AGENT_MODEL_MAP.items():
-            if cfg.provider == "gemini":
-                continue
-            fallback_providers = [c.provider for c in cfg.fallbacks]
-            assert "gemini" in fallback_providers, \
-                f"{agent} has no gemini fallback (fallbacks={fallback_providers})"
+            assert len(cfg.fallbacks) >= 1, f"{agent} has no fallbacks configured"
 
     def test_unknown_agent_raises_keyerror(self):
         with pytest.raises(KeyError):
