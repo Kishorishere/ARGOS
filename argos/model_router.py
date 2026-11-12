@@ -2,16 +2,13 @@
 Model Router — per-agent LLM provider dispatch.
 
 Design goal: keep each agent's quota bucket independent by spreading calls
-across multiple providers. As of the NASDAQ pivot the primary tier is
-OpenAI (paid): different tiers per role, but Bull ↔ Bear MUST share the
-same model so any confidence gap is evidence-driven, not model-driven.
+across multiple Gemini API keys (one Google Cloud project per key = one
+free-tier quota pool). Primary tier is Gemini. Fallbacks: Groq (free-tier
+LPU) and OpenRouter (:free models) so the graph never silently drops an
+agent — the FallbackLLM shim walks the cascade on 429/503/quota/timeout.
 
-Fallbacks: Groq (free-tier LPU) then Gemini flash — the graph should never
-silently drop an agent, and the FallbackLLM shim walks the cascade on
-429/503/quota/timeout.
-
-See ARGOS_FREE_LLM_PROVIDERS.md for the older free-tier survey (now the
-fallback layer only).
+Bull ↔ Bear MUST share the same primary model (symmetry invariant) so any
+confidence gap between them is evidence-driven, not model-driven.
 """
 
 from __future__ import annotations
@@ -25,12 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 Provider = Literal[
-    "openai",       # OpenAI Responses/Chat Completions — primary
-    "gemini",       # google-genai — grounded search available (fallback)
+    "gemini",       # google-genai — primary (6 keys = 6 quota pools)
     "groq",         # Groq LPU (sub-1s Llama 3.3 70B) — fallback
+    "openrouter",   # OpenRouter :free suffix models — fallback
     "cerebras",     # Cerebras wafer-scale
     "sambanova",    # SambaNova
-    "openrouter",   # OpenRouter :free suffix models
     "nvidia",       # NVIDIA NIM
     "ollama",       # Local via Ollama
 ]
@@ -52,16 +48,17 @@ class ModelConfig:
 
 
 # ── Named model shortcuts ───────────────────────────────────────────────────
-# Keep model IDs in one place so provider retirements are a one-line fix.
-# OpenAI (NASDAQ-pivot primary, 2026-09):
-OPENAI_GPT_4O = "gpt-4o"
-OPENAI_GPT_4O_MINI = "gpt-4o-mini"
-OPENAI_O1 = "o1"
-OPENAI_O1_MINI = "o1-mini"
-
-# Gemini (fallback tier — grounded search unique on free providers)
-GEMINI_FLASH = "gemini-flash-latest"
-GEMINI_PRO = "gemini-flash-latest"  # pro quota exhausted on free; alias to flash
+# Gemini 3 pinned model IDs. Gemini 2.x is being deprecated/retired and the
+# `-latest` aliases on 2.x route everyone to the same hot backend (503s on
+# every key together). Pinning to Gemini 3 gives us a current, less-contended
+# pool. Flash-lite kept as the per-agent in-chain fallback so a hot primary
+# doesn't take out the whole run.
+GEMINI_FLASH = "gemini-3.5-flash"
+GEMINI_FLASH_LITE = "gemini-3.5-flash-lite"
+# NOTE: gemini-3.1-pro-preview is 429 RESOURCE_EXHAUSTED on free-tier (preview
+# tier has no free quota). Point PRO at the flash GA model until a billed key
+# is wired up — same provider, free, sub-5s latency.
+GEMINI_PRO = "gemini-3.5-flash"
 
 # Groq (fallback tier)
 GROQ_GPT_OSS_120B = "openai/gpt-oss-120b"
@@ -86,17 +83,44 @@ PROVIDER_BASE_URL = {
 }
 
 
+# ── Gemini key pool ─────────────────────────────────────────────────────────
+# Six independent Google Cloud projects = six free-tier quota buckets. The
+# per-agent routing table below pins each agent to a primary key and lists
+# the rest as fallbacks, so one agent's quota exhaustion doesn't take out
+# the whole graph.
+GEMINI_KEY_A    = "GEMINI_PROJECT_A_API_KEY"  # a.k.a. trader-1
+GEMINI_KEY_B    = "GEMINI_PROJECT_B_API_KEY"  # a.k.a. trader-2
+GEMINI_KEY_C    = "GEMINI_PROJECT_C_API_KEY"
+GEMINI_KEY_OCR1 = "GEMINI_OCR_1_API_KEY"
+GEMINI_KEY_OCR2 = "GEMINI_OCR_2_API_KEY"
+GEMINI_KEY_OCR3 = "GEMINI_OCR_3_API_KEY"
+
+ALL_GEMINI_KEYS = (
+    GEMINI_KEY_A, GEMINI_KEY_B, GEMINI_KEY_C,
+    GEMINI_KEY_OCR1, GEMINI_KEY_OCR2, GEMINI_KEY_OCR3,
+)
+
+
 # ── Convenience constructors ────────────────────────────────────────────────
 
-def _openai_cfg(model: str = OPENAI_GPT_4O, grounded: bool = False) -> ModelConfig:
-    return ModelConfig(provider="openai", api_key_env="OPENAI_API_KEY",
+def _gemini_cfg(key_env: str, model: str = GEMINI_FLASH,
+                grounded: bool = False) -> ModelConfig:
+    return ModelConfig(provider="gemini", api_key_env=key_env,
                        model_name=model, grounded=grounded)
 
 
-def _gemini_cfg(grounded: bool = False, key_env: str = "GEMINI_PROJECT_A_API_KEY",
-                model: str = GEMINI_FLASH) -> ModelConfig:
-    return ModelConfig(provider="gemini", api_key_env=key_env, model_name=model,
-                       grounded=grounded)
+def _gemini_chain(primary_key: str, model: str = GEMINI_FLASH,
+                  grounded: bool = False) -> tuple:
+    """Build a Gemini fallback chain that starts at `primary_key` and then
+    walks every OTHER key in ALL_GEMINI_KEYS in a stable rotated order, then
+    retries each key again with flash-lite (different model backend → avoids
+    a 503-storm on the primary model taking out the whole run).
+    """
+    rotated = [k for k in ALL_GEMINI_KEYS if k != primary_key]
+    primary_tier = tuple(_gemini_cfg(k, model=model, grounded=grounded) for k in rotated)
+    lite_tier = tuple(_gemini_cfg(k, model=GEMINI_FLASH_LITE, grounded=grounded)
+                      for k in [primary_key] + rotated)
+    return primary_tier + lite_tier
 
 
 def _groq_cfg(model: str = GROQ_GPT_OSS_120B) -> ModelConfig:
@@ -108,100 +132,64 @@ def _openrouter_cfg(model: str = OPENROUTER_QWEN) -> ModelConfig:
                        model_name=model, base_url=PROVIDER_BASE_URL["openrouter"])
 
 
-# Shared cheap OpenAI fallback so a primary model's outage doesn't kill the graph.
-_OPENAI_MINI_FALLBACK = _openai_cfg(OPENAI_GPT_4O_MINI)
 _GROQ_FALLBACK = _groq_cfg()
-_GEMINI_FALLBACK = _gemini_cfg(model=GEMINI_FLASH)
+_OPENROUTER_FALLBACK = _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA)
+
+
+def _build(primary_key: str, model: str, grounded: bool = False,
+           tail: tuple = ()) -> ModelConfig:
+    """Primary Gemini config + rotated Gemini key chain + tail (Groq/OR)."""
+    primary = _gemini_cfg(primary_key, model=model, grounded=grounded)
+    chain = _gemini_chain(primary_key, model=model, grounded=grounded) + tail
+    return ModelConfig(
+        provider="gemini", api_key_env=primary_key,
+        model_name=model, grounded=grounded, fallbacks=chain,
+    )
 
 
 # ── Per-agent routing table ─────────────────────────────────────────────────
-# Debate symmetry is the load-bearing invariant here: Bull and Bear MUST share
-# the same primary model, same temperature, same fallback chain, so any
-# confidence gap between them is evidence-driven, not provider-driven.
-# See U1 note in the git log (2026-09).
+# Each agent is pinned to a distinct primary key so a single run spreads load
+# across all six Gemini quota pools. On 429/quota the FallbackLLM walks the
+# rotated key chain, then Groq + OpenRouter as deep fallbacks.
+#
+# Debate symmetry invariant: Bull and Bear MUST share the same primary model
+# (asymmetry re-introduces the model-prior confidence gap we hit on NEPSE).
 AGENT_MODEL_MAP: dict[str, ModelConfig] = {
-    # ── Grounded analysts (OpenAI + web_search_preview tool when supported) ─
-    # `grounded=True` triggers a best-effort tool bind in _make_openai; if the
-    # installed langchain-openai version doesn't support Responses-API tools,
-    # it silently proceeds without grounding (the node prompt still tells the
-    # model to reason strictly as-of the given date).
-    "fundamentals": _openai_cfg(OPENAI_GPT_4O, grounded=True).__class__(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O, grounded=True,
-        fallbacks=(_openai_cfg(OPENAI_GPT_4O_MINI, grounded=True),
-                   _gemini_cfg(grounded=True, key_env="GEMINI_PROJECT_A_API_KEY"),
-                   _gemini_cfg(grounded=True, key_env="GEMINI_PROJECT_B_API_KEY"),
-                   _groq_cfg(), _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA)),
-    ),
-    "sentiment": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O, grounded=True,
-        fallbacks=(_openai_cfg(OPENAI_GPT_4O_MINI, grounded=True),
-                   _gemini_cfg(grounded=True, key_env="GEMINI_PROJECT_A_API_KEY"),
-                   _gemini_cfg(grounded=True, key_env="GEMINI_PROJECT_B_API_KEY"),
-                   _groq_cfg(), _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA)),
-    ),
+    # Grounded analysts — flash with Google Search grounding
+    "fundamentals": _build(GEMINI_KEY_OCR1, GEMINI_FLASH, grounded=True,
+                           tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
+    "sentiment":    _build(GEMINI_KEY_OCR2, GEMINI_FLASH, grounded=True,
+                           tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
 
-    # ── Technicals: fast, deterministic-ish; mini is enough
-    "technicals": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O_MINI,
-        fallbacks=(_groq_cfg(), _openrouter_cfg(), _GEMINI_FALLBACK),
-    ),
+    # Fast/cheap flash agents
+    "technicals":   _build(GEMINI_KEY_OCR3, GEMINI_FLASH,
+                           tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
+    "exit_manager": _build(GEMINI_KEY_C, GEMINI_FLASH,
+                           tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
 
-    # ── Debate: SYMMETRIC. Same model, same temp, same fallbacks.
-    # Load-bearing: any asymmetry re-introduces the model-prior confidence gap
-    # that the 44-date NEPSE backtest surfaced.
-    "bull": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O,
-        fallbacks=(_OPENAI_MINI_FALLBACK, _groq_cfg(),
-                   _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA), _GEMINI_FALLBACK),
-    ),
-    "bear": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O,
-        fallbacks=(_OPENAI_MINI_FALLBACK, _groq_cfg(),
-                   _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA), _GEMINI_FALLBACK),
-    ),
+    # Pre-debate edge gate — explicitly cheapest tier. One structured call
+    # per decision deciding whether the expensive bull/bear/judge/risk/PM
+    # stack is worth running today. Flash-lite primary keeps the gate's own
+    # cost under ~2k tokens/call, so even on every-day runs the gate pays
+    # for itself in a single skipped debate.
+    "edge_gate":    _build(GEMINI_KEY_C, GEMINI_FLASH_LITE,
+                           tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
 
-    # ── Judge: DIFFERENT model from debaters so its pattern of thinking is
-    # independent. Debaters run on gpt-4o; judge runs on gpt-4o-mini
-    # (smaller family sibling). The o1/o1-mini reasoning models are not
-    # provisioned on this key (2026-09 verification), so a cross-family
-    # judge would just cascade — gpt-4o-mini gives independence via a
-    # different capacity tier without wasting a fallback hop.
-    "judge": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O_MINI,
-        fallbacks=(_openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA),
-                   _groq_cfg(), _GEMINI_FALLBACK),
-    ),
+    # Debate — SYMMETRIC. Same primary model + same chain.
+    "bull": _build(GEMINI_KEY_A, GEMINI_FLASH,
+                   tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
+    "bear": _build(GEMINI_KEY_A, GEMINI_FLASH,
+                   tail=(_GROQ_FALLBACK, _OPENROUTER_FALLBACK)),
 
-    # ── Exit Manager: runs FIRST when a position is open — fast + cheap
-    "exit_manager": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O_MINI,
-        fallbacks=(_groq_cfg(), _openrouter_cfg(), _GEMINI_FALLBACK),
-    ),
+    # Judge — different key family from debaters so bias is independent
+    "judge": _build(GEMINI_KEY_C, GEMINI_FLASH,
+                    tail=(_OPENROUTER_FALLBACK, _GROQ_FALLBACK)),
 
-    # ── Risk Manager: veto call — biggest reasoner available on this key.
-    # o1 is not provisioned (2026-09), so use gpt-4o (same tier as debaters
-    # but larger prompt budget for the full transcript + risk checklist).
-    "risk_manager": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O,
-        fallbacks=(_openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA),
-                   _groq_cfg(), _GEMINI_FALLBACK),
-    ),
-
-    # ── Portfolio Manager: final synthesis — gpt-4o for judgment quality
-    "portfolio_manager": ModelConfig(
-        provider="openai", api_key_env="OPENAI_API_KEY",
-        model_name=OPENAI_GPT_4O,
-        fallbacks=(_OPENAI_MINI_FALLBACK, _groq_cfg(),
-                   _openrouter_cfg(OPENROUTER_NEMOTRON_ULTRA), _GEMINI_FALLBACK),
-    ),
+    # Heavy reasoners — pro tier on the two trader keys
+    "risk_manager":      _build(GEMINI_KEY_B, GEMINI_PRO,
+                                tail=(_OPENROUTER_FALLBACK, _GROQ_FALLBACK)),
+    "portfolio_manager": _build(GEMINI_KEY_B, GEMINI_PRO,
+                                tail=(_OPENROUTER_FALLBACK, _GROQ_FALLBACK)),
 }
 
 
@@ -209,7 +197,8 @@ AGENT_MODEL_MAP: dict[str, ModelConfig] = {
 assert (
     AGENT_MODEL_MAP["bull"].model_name == AGENT_MODEL_MAP["bear"].model_name
     and AGENT_MODEL_MAP["bull"].provider == AGENT_MODEL_MAP["bear"].provider
-), "Bull and Bear must share the same primary model — see U1 (debate symmetry)."
+    and AGENT_MODEL_MAP["bull"].api_key_env == AGENT_MODEL_MAP["bear"].api_key_env
+), "Bull and Bear must share the same primary model + key — see debate symmetry."
 
 
 def get_model_config(agent_name: str) -> ModelConfig:
@@ -219,50 +208,13 @@ def get_model_config(agent_name: str) -> ModelConfig:
 # ── LLM instantiation ───────────────────────────────────────────────────────
 
 
-# Reasoning models (o1, o3, o1-mini) reject `temperature` and `max_retries`
-# kwargs — they only support default temperature=1.0.
-_REASONING_PREFIXES = ("o1", "o3")
-
-
-def _is_reasoning_model(model_name: str) -> bool:
-    return any(model_name.startswith(p) for p in _REASONING_PREFIXES)
-
-
-def _make_openai(cfg: ModelConfig):
-    """OpenAI primary path. Grounded roles best-effort bind web_search."""
-    from langchain_openai import ChatOpenAI
-    api_key = os.environ.get(cfg.api_key_env)
-    if not api_key:
-        raise EnvironmentError(f"Missing {cfg.api_key_env}")
-
-    kwargs: dict = {"model": cfg.model_name, "api_key": api_key, "timeout": 60}
-    if not _is_reasoning_model(cfg.model_name):
-        kwargs["temperature"] = 0.3
-        kwargs["max_retries"] = 3
-
-    llm = ChatOpenAI(**kwargs)
-
-    if cfg.grounded:
-        # NOTE: We intentionally do NOT bind web_search_preview here.
-        # The tool-call channel conflicts with `method="function_calling"`
-        # structured output (the model picks web_search instead of emitting
-        # the schema function). For the 2024 NASDAQ backtest the model's
-        # training data covers the target dates well; the prompt tells it
-        # to reason strictly as-of {as_of_date}. Revisit when we need
-        # live-web grounding for a forward-looking mode.
-        logger.debug("OpenAI grounded=True on %s — using training-data "
-                     "reasoning (web_search bind disabled to avoid conflict "
-                     "with function-calling structured output)", cfg.model_name)
-    return llm
-
-
 def _make_gemini(cfg: ModelConfig):
     from langchain_google_genai import ChatGoogleGenerativeAI
     api_key = os.environ.get(cfg.api_key_env)
     if not api_key:
         raise EnvironmentError(f"Missing {cfg.api_key_env}")
-    max_retries = int(os.environ.get("GEMINI_MAX_RETRIES", "5"))
-    timeout = int(os.environ.get("GEMINI_TIMEOUT_S", "60"))
+    max_retries = int(os.environ.get("GEMINI_MAX_RETRIES", "1"))
+    timeout = int(os.environ.get("GEMINI_TIMEOUT_S", "20"))
     llm = ChatGoogleGenerativeAI(
         model=cfg.model_name, google_api_key=api_key,
         temperature=0.3, max_retries=max_retries, timeout=timeout,
@@ -300,7 +252,6 @@ def _make_openai_compatible(cfg: ModelConfig):
 
 
 _DISPATCH = {
-    "openai":     _make_openai,
     "gemini":     _make_gemini,
     "groq":       _make_groq,
     "cerebras":   _make_openai_compatible,
@@ -313,8 +264,8 @@ _DISPATCH = {
 
 def _make_llm_from_cfg(cfg: ModelConfig):
     fn = _DISPATCH[cfg.provider]
-    logger.info("LLM: %s / %s%s", cfg.provider, cfg.model_name,
-                " [grounded]" if cfg.grounded else "")
+    logger.info("LLM: %s / %s [key=%s]%s", cfg.provider, cfg.model_name,
+                cfg.api_key_env, " [grounded]" if cfg.grounded else "")
     return fn(cfg)
 
 
@@ -355,26 +306,8 @@ class FallbackLLM:
 
     @staticmethod
     def _structured_kwargs_for(label: str, user_kwargs: dict) -> dict:
-        """Pick the right `method` per provider.
-
-        - OpenAI gpt-4o family: use `function_calling` — the default
-          `json_schema` runs in STRICT mode which requires every nested
-          object to explicitly declare `additionalProperties: false`. The
-          `AnalystSignal` schema has an `Optional[dict]` field that fails
-          this validation server-side (400 error, no retry helps). Function
-          calling is lenient with the schema shape.
-        - OpenAI o1/o3 reasoning models: no function-calling support today;
-          use `json_mode` (schema described in the prompt).
-        - Gemini: default (tool-calling) works.
-        - Groq / OpenRouter / SambaNova / Cerebras: json_schema server-enforced.
-        """
+        """Pick the right `method` per provider."""
         kwargs = dict(user_kwargs)
-        if label.startswith("openai/o1") or label.startswith("openai/o3"):
-            kwargs.setdefault("method", "json_mode")
-            return kwargs
-        if label.startswith("openai/"):
-            kwargs.setdefault("method", "function_calling")
-            return kwargs
         if label.startswith("gemini/") or label.startswith("nvidia/"):
             return kwargs  # native structured output works
         kwargs.setdefault("method", "json_schema")
@@ -389,8 +322,8 @@ class FallbackLLM:
         return llm
 
     def invoke(self, messages, **kwargs):
-        # Cache lookup: only if agent_name is known and a cache is configured.
         from argos.llm_cache import cache_get, cache_put, is_enabled
+        from argos.token_usage import TokenCapture
         cache_key = None
         if is_enabled() and self._agent_name and self._structured_schema is not None:
             cache_key = (self._agent_name, self._labels[0] if self._labels else "?",
@@ -399,7 +332,6 @@ class FallbackLLM:
             if hit is not None:
                 logger.info("LLM cache HIT [%s / %s]", self._agent_name,
                             self._labels[0] if self._labels else "?")
-                # Rehydrate to the pydantic schema so downstream .model_dump() works
                 try:
                     return self._structured_schema(**hit)
                 except Exception:
@@ -409,7 +341,13 @@ class FallbackLLM:
         for i, (llm, label) in enumerate(zip(self._llms, self._labels)):
             try:
                 inner = self._prepare(llm, label)
-                result = inner.invoke(messages, **kwargs)
+                call_kwargs = dict(kwargs)
+                cfg = dict(call_kwargs.get("config") or {})
+                existing_cbs = list(cfg.get("callbacks") or [])
+                existing_cbs.append(TokenCapture(self._agent_name or "?", label))
+                cfg["callbacks"] = existing_cbs
+                call_kwargs["config"] = cfg
+                result = inner.invoke(messages, **call_kwargs)
                 if cache_key is not None:
                     try:
                         payload = result.model_dump() if hasattr(result, "model_dump") else result

@@ -25,6 +25,15 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def _token_snapshot() -> dict:
+    """Best-effort snapshot of per-agent tokens for the current decision."""
+    try:
+        from argos.token_usage import snapshot, totals
+        return {"per_agent": snapshot(), "totals": totals()}
+    except Exception:
+        return {}
+
+
 def _git_sha() -> str:
     """Best-effort git SHA of the working tree. Falls back to 'unknown'."""
     try:
@@ -113,6 +122,11 @@ def build_record(
         "kronos_forecast": final_state.get("kronos_forecast"),
         # ── Multi-horizon forecast (P17) — 1d/1w/1m direction+profit ──
         "multi_horizon_forecast": final_state.get("multi_horizon_forecast"),
+        # ── Edge gate verdict (selective reasoning) ──
+        # {"proceed": bool, "confidence": float, "triggers": [...], "reasoning": str}
+        # When proceed=False the downstream debate/judge/risk/PM fields will
+        # be absent and `final_decision.action == "hold"` with gate rationale.
+        "gate_verdict": final_state.get("gate_verdict"),
         # ── Indicator trace: every fired signal + composite scores ──
         "indicator_composite": _indicator_composite(technicals_signal),
         "indicator_signals_fired": _flatten_indicator_signals(technicals_signal),
@@ -125,6 +139,8 @@ def build_record(
         "debate_transcript": final_state.get("debate_transcript", []),
         # ── Blind judge verdict (independent adjudicator on the debate) ──
         "judge_verdict": final_state.get("judge_verdict"),
+        # ── Per-agent token usage captured by argos.token_usage ──
+        "token_usage": _token_snapshot(),
         # ── Risk verdict ──
         "risk_verdict": final_state.get("risk_verdict"),
         # ── Final decision ──

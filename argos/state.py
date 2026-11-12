@@ -55,6 +55,12 @@ class FuseState(TypedDict, total=False):
     # --- Multi-horizon forecast (P17) — 1d/1w/1m direction+profit projections ---
     multi_horizon_forecast: dict[str, Any] | None
 
+    # --- Pre-debate edge gate (selective reasoning) ---
+    # Populated by edge_gate_node. {"proceed": bool, "confidence": float,
+    # "triggers": [...], "reasoning": str}. When proceed=False the graph
+    # short-circuits to HOLD and skips bull/bear/judge/risk/PM.
+    gate_verdict: dict[str, Any] | None
+
     # --- Blind judge (U1) ---
     judge_verdict: dict[str, Any] | None
 

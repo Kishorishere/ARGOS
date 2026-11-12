@@ -3,11 +3,14 @@ LangGraph Graph Definition — Argos pipeline.
 
 Topology (per §6 of build spec):
 1. Three analysts run in PARALLEL: Fundamentals, Sentiment, Technicals
-2. Debate: Bull argues first, Bear rebuts (sequential)
-3. Risk Manager reviews the debate
-4. CONDITIONAL: If vetoed → short-circuit to HOLD (skip Portfolio Manager)
+2. Multi-horizon forecast (P17)
+3. Edge gate (selective reasoning): on skip, short-circuit to HOLD and END
+4. Debate: Bull argues first, Bear rebuts (sequential)
+5. Blind judge
+6. Risk Manager reviews the debate
+7. CONDITIONAL: If vetoed → short-circuit to HOLD (skip Portfolio Manager)
                 If approved → Portfolio Manager synthesizes final decision
-5. END
+8. END
 """
 
 from __future__ import annotations
@@ -23,6 +26,11 @@ from argos.nodes.fundamentals import fundamentals_node
 from argos.nodes.sentiment import sentiment_node
 from argos.nodes.technicals import technicals_node
 from argos.nodes.debate import bull_node, bear_node
+from argos.nodes.edge_gate import (
+    edge_gate_node,
+    gate_hold_short_circuit,
+    should_skip_debate,
+)
 from argos.nodes.exit_manager import exit_manager_node, should_short_circuit_exit
 from argos.nodes.forecast import forecast_node
 from argos.nodes.judge import judge_node
@@ -111,6 +119,11 @@ def build_graph() -> StateGraph:
     # Multi-horizon forecast (P17) — runs after analysts, before debate
     graph.add_node("forecast", forecast_node)
 
+    # Edge gate — cheap pre-debate triage. On skip we short-circuit to HOLD
+    # and bypass bull/bear/judge/risk/PM entirely. See argos.nodes.edge_gate.
+    graph.add_node("edge_gate", edge_gate_node)
+    graph.add_node("gate_hold_short_circuit", gate_hold_short_circuit)
+
     # Debate (sequential: Bull first, then Bear)
     graph.add_node("bull", bull_node)
     graph.add_node("bear", bear_node)
@@ -137,10 +150,17 @@ def build_graph() -> StateGraph:
     graph.add_conditional_edges("analyst_router", _route_to_analysts, ANALYST_NODES)
 
     # Fan-in: each analyst → forecast (LangGraph waits for all branches),
-    # then forecast → bull
+    # then forecast → edge_gate → (skip | bull)
     for node in ANALYST_NODES:
         graph.add_conditional_edges(node, _after_analysts, {"bull": "forecast"})
-    graph.add_edge("forecast", "bull")
+    graph.add_edge("forecast", "edge_gate")
+
+    # Edge gate: either short-circuit to HOLD or proceed to the debate.
+    graph.add_conditional_edges(
+        "edge_gate", should_skip_debate,
+        {"skip": "gate_hold_short_circuit", "proceed": "bull"},
+    )
+    graph.add_edge("gate_hold_short_circuit", END)
 
     # Debate: Bull → Bear (sequential)
     graph.add_edge("bull", "bear")
@@ -203,6 +223,7 @@ def create_initial_state(
         debate_transcript=[],
         exit_decision=None,
         multi_horizon_forecast=None,
+        gate_verdict=None,
         judge_verdict=None,
         risk_verdict=None,
         final_decision=None,
