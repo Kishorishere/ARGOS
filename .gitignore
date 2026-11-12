@@ -224,3 +224,10 @@ logs/
 *.apk
 plan.html
 
+# scratch dirs
+.archify/
+
+# frontend build / deps
+frontend/node_modules/
+frontend/dist/
+
