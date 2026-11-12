@@ -267,15 +267,25 @@ def _score_directional(agent_dirs: list[Optional[int]],
     return stats
 
 
-def _sharpe_sortino(daily_returns: list[float]) -> tuple[Optional[float], Optional[float]]:
-    if len(daily_returns) < 5:
+PERIODS_PER_YEAR = 52  # Weekly cadence => ~52 marks/year for annualisation.
+
+
+def _sharpe_sortino(period_returns: list[float]) -> tuple[Optional[float], Optional[float]]:
+    """Annualised Sharpe and Sortino from a per-period return series.
+
+    Period here = one decision step (weekly). Annualisation factor = sqrt(52).
+    Risk-free rate assumed zero (research-paper default; cash yields are a
+    separate rebalancing concern).
+    """
+    if len(period_returns) < 5:
         return (None, None)
-    mean = statistics.mean(daily_returns)
-    std = statistics.pstdev(daily_returns)
-    downside = [r for r in daily_returns if r < 0]
+    mean = statistics.mean(period_returns)
+    std = statistics.pstdev(period_returns)
+    downside = [r for r in period_returns if r < 0]
     downside_std = statistics.pstdev(downside) if len(downside) >= 2 else 0.0
-    sharpe = (mean / std) * math.sqrt(TRADING_DAYS_PER_YEAR) if std else None
-    sortino = (mean / downside_std) * math.sqrt(TRADING_DAYS_PER_YEAR) if downside_std else None
+    scale = math.sqrt(PERIODS_PER_YEAR)
+    sharpe = (mean / std) * scale if std else None
+    sortino = (mean / downside_std) * scale if downside_std else None
     return sharpe, sortino
 
 
@@ -309,10 +319,14 @@ def _confidence_gap(records: list[dict]) -> dict[str, float]:
 # ── NAV via simulate ─────────────────────────────────────────────────────
 
 
+STARTING_CASH_PER_TICKER = 1000.0  # Research setup: $1k book per ticker.
+
+
 def _paper_nav(journal_root: Path, ticker: str) -> tuple[list[float], list[float], dict]:
     """Run the paper simulator on this ticker's journal directory.
 
-    Returns (nav_curve, daily_returns, simulate_stats_dict).
+    Returns (nav_values, period_returns, simulate_stats_dict). nav_values is
+    the equity-per-decision series; period_returns is step-to-step returns.
     """
     try:
         from argos.simulate import replay
@@ -323,18 +337,79 @@ def _paper_nav(journal_root: Path, ticker: str) -> tuple[list[float], list[float
     if not ticker_dir.exists():
         return [], [], {}
     try:
-        stats = replay(ticker_dir, ticker)
+        stats = replay(ticker_dir, ticker, starting_cash=STARTING_CASH_PER_TICKER)
     except Exception as e:  # noqa: BLE001
         logger.warning("simulate.replay(%s) failed: %s", ticker, e)
         return [], [], {}
-    nav = stats.get("nav_curve") or stats.get("equity_curve") or []
-    if not nav:
+    curve = stats.get("nav_curve") or []
+    nav_values = [pt["equity"] for pt in curve if isinstance(pt, dict)]
+    if not nav_values:
         return [], [], stats if isinstance(stats, dict) else {}
-    daily = []
-    for i in range(1, len(nav)):
-        if nav[i - 1] > 0:
-            daily.append(nav[i] / nav[i - 1] - 1.0)
-    return nav, daily, stats if isinstance(stats, dict) else {}
+    period_returns = []
+    for i in range(1, len(nav_values)):
+        if nav_values[i - 1] > 0:
+            period_returns.append(nav_values[i] / nav_values[i - 1] - 1.0)
+    return nav_values, period_returns, stats if isinstance(stats, dict) else {}
+
+
+# ── Token-usage aggregation ───────────────────────────────────────────────
+
+
+def _aggregate_tokens(records: list[dict]) -> dict:
+    """Sum per-agent + overall tokens across every journalled decision.
+
+    Returns {per_agent: {agent: {input, output, total, calls}},
+             totals: {input, output, total, calls, decisions_covered}}
+    """
+    per_agent: dict[str, dict[str, int]] = {}
+    total_in = total_out = total_calls = 0
+    covered = 0
+    for r in records:
+        tu = r.get("token_usage") or {}
+        per = tu.get("per_agent") or {}
+        if not per:
+            continue
+        covered += 1
+        for key, v in per.items():
+            # key is "agent/label"; aggregate under bare agent name
+            agent = key.split("/", 1)[0]
+            dst = per_agent.setdefault(agent, {"input_tokens": 0, "output_tokens": 0,
+                                                "total_tokens": 0, "calls": 0})
+            dst["input_tokens"] += int(v.get("input_tokens", 0))
+            dst["output_tokens"] += int(v.get("output_tokens", 0))
+            dst["total_tokens"] += int(v.get("total_tokens", 0))
+            dst["calls"] += int(v.get("calls", 0))
+        tot = tu.get("totals") or {}
+        total_in += int(tot.get("input_tokens", 0))
+        total_out += int(tot.get("output_tokens", 0))
+        total_calls += int(tot.get("calls", 0))
+    return {
+        "per_agent": per_agent,
+        "totals": {
+            "input_tokens": total_in,
+            "output_tokens": total_out,
+            "total_tokens": total_in + total_out,
+            "calls": total_calls,
+            "decisions_covered": covered,
+            "decisions_total": len(records),
+        },
+    }
+
+
+def _tokens_per_decision(agg: dict) -> float | None:
+    t = agg.get("totals") or {}
+    d = t.get("decisions_covered") or 0
+    if d <= 0:
+        return None
+    return t["total_tokens"] / d
+
+
+def _profit_per_1k_tokens(pnl_usd: float, agg: dict) -> float | None:
+    t = agg.get("totals") or {}
+    total = t.get("total_tokens") or 0
+    if total <= 0:
+        return None
+    return pnl_usd / (total / 1000.0)
 
 
 # ── Per-ticker aggregation ────────────────────────────────────────────────
@@ -345,22 +420,31 @@ class TickerReport:
     ticker: str
     n_records: int
     n_errors: int
-    per_agent_directional: dict = field(default_factory=dict)  # agent → {h: DirectionalStats}
+    per_agent_directional: dict = field(default_factory=dict)
     sharpe: Optional[float] = None
     sortino: Optional[float] = None
     max_dd: Optional[float] = None
     calmar: Optional[float] = None
+    pnl_usd: Optional[float] = None
+    return_pct: Optional[float] = None
     confidence_gap: dict = field(default_factory=dict)
     simulate_stats: dict = field(default_factory=dict)
+    token_usage: dict = field(default_factory=dict)
+    tokens_per_decision: Optional[float] = None
+    profit_per_1k_tokens: Optional[float] = None
 
     def to_dict(self) -> dict:
         return {
             "ticker": self.ticker, "n_records": self.n_records, "n_errors": self.n_errors,
             "sharpe": self.sharpe, "sortino": self.sortino,
             "max_dd": self.max_dd, "calmar": self.calmar,
+            "pnl_usd": self.pnl_usd, "return_pct": self.return_pct,
             "confidence_gap": self.confidence_gap,
             "simulate_stats": {k: v for k, v in self.simulate_stats.items()
-                               if k not in ("nav_curve", "equity_curve", "trades")},
+                               if k not in ("nav_curve", "equity_curve")},
+            "token_usage": self.token_usage,
+            "tokens_per_decision": self.tokens_per_decision,
+            "profit_per_1k_tokens": self.profit_per_1k_tokens,
             "per_agent_directional": {
                 agent: {h: {"accuracy": s.accuracy, "coverage": s.coverage,
                             "n_directional": s.n_directional, "n_correct": s.n_correct}
@@ -395,16 +479,27 @@ def _analyze_ticker(journal_root: Path, ticker: str) -> TickerReport:
 
     report.confidence_gap = _confidence_gap(good)
 
-    nav, daily, sim_stats = _paper_nav(journal_root, ticker)
-    if daily:
-        report.sharpe, report.sortino = _sharpe_sortino(daily)
+    nav, period_returns, sim_stats = _paper_nav(journal_root, ticker)
+    if period_returns:
+        report.sharpe, report.sortino = _sharpe_sortino(period_returns)
         report.max_dd = _max_drawdown(nav)
         total_return = (nav[-1] / nav[0] - 1.0) if nav and nav[0] else None
+        report.return_pct = total_return * 100 if total_return is not None else None
+        report.pnl_usd = (nav[-1] - nav[0]) if nav else None
         if report.max_dd and total_return is not None and report.max_dd < 0:
-            years = max(len(daily) / TRADING_DAYS_PER_YEAR, 1e-6)
+            # Weekly cadence: 53 marks per year => years = len(returns)/53.
+            # Avoid overstating annualisation on short samples.
+            n_marks = len(nav)
+            years = max(n_marks / 53.0, 1e-6)
             ann_ret = (1 + total_return) ** (1 / years) - 1
             report.calmar = ann_ret / abs(report.max_dd)
     report.simulate_stats = sim_stats
+
+    # ── Token usage + derived $-per-token metrics ──
+    report.token_usage = _aggregate_tokens(good)
+    report.tokens_per_decision = _tokens_per_decision(report.token_usage)
+    if report.pnl_usd is not None:
+        report.profit_per_1k_tokens = _profit_per_1k_tokens(report.pnl_usd, report.token_usage)
     return report
 
 
@@ -494,9 +589,16 @@ def _plot_equity_curves(reports: list[TickerReport], output_path: Path) -> None:
         return
     fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
     for r in reports:
-        nav = r.simulate_stats.get("nav_curve") or r.simulate_stats.get("equity_curve")
-        if nav:
-            ax.plot(range(len(nav)), nav, label=r.ticker, linewidth=1.5)
+        nav_rows = r.simulate_stats.get("nav_curve") or r.simulate_stats.get("equity_curve") or []
+        if not nav_rows:
+            continue
+        # nav_curve rows are {date, equity, price, has_position} dicts.
+        # Fall back to a float list for backward compatibility.
+        if isinstance(nav_rows[0], dict):
+            y = [row.get("equity", 0.0) for row in nav_rows]
+        else:
+            y = nav_rows
+        ax.plot(range(len(y)), y, label=r.ticker, linewidth=1.5)
     ax.set_title("NASDAQ focus — paper NAV per ticker")
     ax.set_xlabel("Trading day")
     ax.set_ylabel("NAV")

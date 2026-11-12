@@ -50,6 +50,7 @@ from argos.journal import (  # noqa: E402
 )
 from argos.llm_cache import cache_stats  # noqa: E402
 from argos.market import is_nasdaq  # noqa: E402
+from argos.token_usage import start_decision as reset_tokens  # noqa: E402
 from run_backtest import _build_ohlcv_summary, generate_trading_dates  # noqa: E402
 
 DEFAULT_UNIVERSE_PATH = REPO_ROOT / "data" / "universe" / "nasdaq_focus.json"
@@ -130,6 +131,7 @@ def _run_one(ticker: str, date: str, graph, output_dir: Path, force: bool) -> st
         state = create_initial_state(
             ticker=ticker, as_of_date=date, ohlcv_window=ohlcv_data,
         )
+        reset_tokens()  # per-decision token counter — read by journal.build_record
         final_state = graph.invoke(state)
         duration = time.time() - t0
 

@@ -59,7 +59,7 @@ def fetch_one(symbol: str) -> QuarterlyReport | None:
     """Ask Gemini to fetch + structure the latest quarterly for `symbol`."""
     logger.info("Fetching fundamentals for %s...", symbol)
     try:
-        llm = _make_llm_from_cfg(_gemini_cfg(grounded=True))
+        llm = _make_llm_from_cfg(_gemini_cfg("GEMINI_PROJECT_A_API_KEY", grounded=True))
         structured = llm.with_structured_output(FundamentalsExtract)
         prompt = (
             f"Fetch the LATEST published quarterly financial report for NEPSE ticker "
