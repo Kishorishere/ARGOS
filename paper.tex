@@ -1,0 +1,753 @@
+%% Argos --- Selective Reasoning in Multi-Agent LLM Trading Desks
+%%
+%% Target venue (first choice): EMNLP 2026 FinLLM workshop
+%% Target venue (stretch):      ICAIF 2026
+%% Status:                      SCAFFOLD. Prose is placeholder; figures/tables
+%%                              point at reports/ files that the analysis
+%%                              scripts (pareto_sweep.py, calibration.py,
+%%                              baselines.py) will produce.
+%%
+%% Author guidance:
+%%   - Keep the paper *measurement-first*. Results tables are the deliverable;
+%%     narrative supports them, does not replace them.
+%%   - Every claim carries an n and an uncertainty band. If a sentence can't
+%%     be defended with a table or CI, cut it.
+%%   - Reproducibility: name the git SHA, the model IDs, the env toggles that
+%%     produced every number. See CLAUDE.md § Reproducibility.
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage{multirow}
+\usepackage{url}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+
+\hypersetup{
+  colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black,
+  citecolor=blue!40!black
+}
+
+\title{\textbf{Selective Reasoning in Multi-Agent LLM Trading Desks:\\
+A Cost--Recall--Calibration Study}}
+\author{Anonymous authors\thanks{Fuse-AI fellowship submission.
+Source, prompts, and full per-decision journals at \url{<redacted for review>}.}}
+\date{}
+
+\begin{document}
+\maketitle
+
+%% =====================================================================
+\begin{abstract}
+Multi-agent LLM trading desks run a full committee --- analysts, debaters,
+judge, risk manager, portfolio manager --- on every bar, yet 84\% of
+decisions in our baseline are HOLD. The cost of the committee is paid
+overwhelmingly to produce inaction. We propose and evaluate a
+\emph{selective-reasoning} layer: a single small-model call placed before
+the debate that decides whether the committee convenes at all. We
+measure the cost--recall--calibration tradeoff on four NASDAQ tickers
+over 2024 (NVDA, TSLA, ORCL, KO, $n{=}211$), with INTC~H1-2024 as an
+out-of-universe probe for regime dependence, releasing full per-decision
+audit for reproducibility. We report four findings: (i) selective
+reasoning is regime-dependent --- on a low-vol consumer-staple (KO) an
+aggressive gate saves 37\% of tokens at 55\% true-trade recall while
+realized $h{=}5$ directional accuracy on preserved trades rises from
+82\% to 100\%; on a volatile declining semi (INTC~H1) the gate's
+triggers fire on 11/11 bars and save nothing; (ii) under symmetric
+model routing, the bull--bear debate retains a ticker-specific
+confidence asymmetry ($|\Delta|{=}0.26$ on NVDA, $|\Delta|{=}0.01$ on
+KO), suggesting evidence-conditional prior leakage rather than model
+bias; (iii) per-agent calibration is uneven --- fundamentals carries
+signal (Brier $0.12$ on ORCL at $n{=}8$) but abstains often, bear-side
+advocacy on NVDA posts $37\%$ realized directional accuracy at $h{=}5$,
+below chance; (iv) against random policies trading at Argos's own
+empirical frequency, Argos's Sharpe is higher on three of four tickers
+but 95\% bootstrap CIs overlap in every case --- at $n{=}53$ weekly
+decisions per ticker the return advantage is not statistically
+distinguishable. We release the full journal, prompts, and evaluation
+harness as a research instrument.
+\end{abstract}
+
+%% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+Multi-agent large language model (LLM) systems have been proposed as a
+paradigm for financial reasoning \citep{tradingagents, finagent, finmem},
+borrowing from the broader literature on multi-agent debate for
+LLM reasoning \citep{du2023debate, liang2023divergent}. These systems
+orchestrate several specialized LLM workers --- analysts, debaters, risk
+managers --- and commit to a trade decision per period. They are evaluated
+primarily on returns.
+
+Three measurement gaps limit this literature. First, token cost per decision
+is rarely reported, despite being the dominant operating cost of these
+systems. Second, inaction (HOLD) is treated as a passive output; the
+expensive deliberation that produces it is unexamined. Third, per-agent
+contribution --- does the bear advocate earn its tokens? --- is uninspected,
+making ablation hard.
+
+We study a specific question that follows from these gaps: \emph{given
+that multi-agent committees abstain the majority of the time, when is
+convening the committee actually worth the tokens?} This reframes trading
+agent orchestration as a selective-prediction problem \citep{chow1970,
+geifman2017selective, mozannar2020defer}, in which a cheap gate decides
+whether the full committee runs or the system short-circuits to HOLD.
+
+We build Argos (Sec.\ref{sec:system}), an eight-agent desk with full
+per-decision auditing, add a selective-reasoning gate before the
+debate, and measure the cost--recall--calibration frontier on four
+NASDAQ tickers through 2024 ($n{=}211$ decisions). Our findings:
+
+\begin{itemize}\itemsep1pt
+  \item \textbf{Regime dependence of selective reasoning
+    (Sec.\ref{sec:results-pareto}).} On KO (low-vol staple) the gate at
+    threshold $\tau{=}0.80$ saves 37\% of committee tokens while keeping
+    55\% of the baseline's directional calls and raising $h{=}5$
+    accuracy on the preserved trades from $82\%$ to $100\%$. On INTC
+    H1-2024 (volatile declining semi) the LLM gate ran live for 11
+    bars and chose \textit{proceed} on 11/11: triggers fire every bar
+    and no tokens are saved. The savings-vs-recall tradeoff is not
+    uniform across the universe.
+  \item \textbf{Confidence asymmetry under symmetric routing
+    (Sec.\ref{sec:results-asymmetry}).} Bull and bear are pinned to the
+    identical model, key, and prompt structure. The confidence gap
+    $|\mathbb{E}[c_{\text{bull}}] - \mathbb{E}[c_{\text{bear}}]|$
+    varies from $0.012$ (KO) to $0.260$ (NVDA). The debate structure
+    retains ticker-specific prior leakage through its evidence stream.
+  \item \textbf{Per-agent calibration is uneven
+    (Sec.\ref{sec:results-calibration}).} The technicals agent is
+    well-calibrated (ECE $0.028$--$0.055$ across tickers) but
+    accurate only at chance level. The blind judge is systematically
+    overconfident (ECE $0.14$--$0.20$ on three of four tickers). The
+    bear advocate on NVDA at $h{=}5$ posts $37\%$ realized accuracy
+    with Brier $0.24$ --- well-calibrated about being wrong. Fundamentals
+    carries signal where it does fire (Brier $0.12$, accuracy $87.5\%$
+    on ORCL at $n{=}8$) but abstains most of the time.
+  \item \textbf{Argos vs frequency-matched random
+    (Sec.\ref{sec:results-baselines}).} Argos has higher Sharpe than a
+    random policy sampled at Argos's own empirical trade frequency on
+    three of four tickers (NVDA $1.68$ vs $1.59$; ORCL $1.18$ vs $1.15$;
+    KO $0.89$ vs $0.39$), but 95\% bootstrap CIs overlap in every
+    case. At $n{=}53$ weekly decisions per ticker the return advantage
+    is not statistically distinguishable. We report this honestly and
+    treat it as the sample-size limit of the current measurement.
+\end{itemize}
+
+Our contribution is a \emph{measurement framework and instrument}
+rather than a new agent design: we show how to evaluate a multi-agent
+LLM committee under cost, recall, and calibration jointly, and release
+the full per-decision audit stream to enable replication.
+
+%% =====================================================================
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Multi-agent LLM finance.}
+\citet{tradingagents} introduce a multi-agent trading pipeline close in
+spirit to our system; \citet{finagent} and \citet{finmem} explore tool-use
+and memory-augmented single-agent variants. These works report decisions
+and returns on equity universes but do not disaggregate per-agent
+contribution or report per-decision token cost. FinGPT and BloombergGPT
+\citep{fingpt, bloomberggpt} study foundation models for finance and are
+complementary.
+
+\paragraph{Multi-agent debate.}
+\citet{du2023debate} and \citet{liang2023divergent} introduce debate as a
+procedure for improving LLM reasoning on general tasks. Our bull--bear
+step adopts their formulation; the blind-judge \citep{madaan2023selfrefine}
+aggregator is a separate design choice.
+
+\paragraph{Selective prediction and learning-to-defer.}
+Selective classification abstains when the model is uncertain, trading
+coverage for accuracy \citep{chow1970, geifman2017selective,
+geifman2019selectivenet}. Learning-to-defer frameworks
+\citep{mozannar2020defer, charusaie2022sample} treat the decision to defer
+as a learned policy. We extend this family to the orchestration level: the
+gate learns when to invoke a downstream multi-agent reasoning procedure.
+
+\paragraph{LLM cost efficiency.}
+Model cascading \citep{chen2023frugalgpt}, routing
+\citep{ong2024routellm}, and speculative execution
+\citep{leviathan2023speculative} reduce per-inference cost by substituting
+cheaper models. Our gate is complementary --- it reduces \emph{whether} the
+expensive path runs, orthogonal to \emph{which} model it uses.
+
+%% =====================================================================
+\section{System: Argos}
+\label{sec:system}
+
+Argos is a LangGraph \citep{langgraph} pipeline of eight LLM-backed nodes.
+We summarize the topology; full prompts are in the appendix and the
+repository.
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering FIGURE 1 placeholder: Argos
+    graph topology. Analysts (fundamentals, sentiment, technicals) run
+    in parallel; forecast node; \textbf{edge gate}; bull/bear debate
+    ($n$ rounds); blind judge; risk manager; portfolio manager. Two
+    short-circuit paths: exit manager (open position) and gate HOLD.}}
+  \caption{Argos pipeline. The selective-reasoning gate (bold) is the
+  object of study.}
+  \label{fig:topology}
+\end{figure}
+
+\paragraph{Agents and roles.}
+Three analysts produce structured \texttt{AnalystSignal}
+(\textit{bullish}/\textit{bearish}/\textit{neutral}, confidence
+$\in[0,1]$, key factors, reasoning). A multi-horizon numerical forecast
+node (Kronos \citep{kronos}) produces 1d/1w/1m direction and expected
+return. The bull and bear advocates produce \texttt{DebateArgument} with
+position, confidence, strongest evidence and rebuttal. The blind judge
+reads the transcript with side labels hidden and emits a
+\texttt{JudgeVerdict}. The risk manager votes on veto; the portfolio
+manager synthesizes the final \texttt{FinalDecision} with sizing and
+exit plan.
+
+\paragraph{Edge gate.}
+Our contribution. One structured call per decision, pinned to a cheap
+model tier (flash-lite), reading the three analyst signals and the
+indicator snapshot. Output: \texttt{proceed} $\in \{\mathrm{True},
+\mathrm{False}\}$, confidence, and a list of triggers from a fixed
+vocabulary (\texttt{analyst\_conviction}, \texttt{analyst\_disagreement},
+\texttt{vol\_spike}, \texttt{composite\_bias\_skew}, \texttt{range\_breakout},
+\texttt{earnings\_proximity}, \texttt{kronos\_high\_conviction},
+\texttt{pattern\_fire}). The prompt is recall-biased: when in doubt,
+proceed. On skip, the pipeline short-circuits to HOLD and the
+bull/bear/judge/risk/PM stages are not called.
+
+\paragraph{Journal.}
+Every $(\text{ticker}, \text{date})$ decision is journalled as JSONL
+including: the exact prompt sent to each agent, each agent's structured
+output, per-agent token counts, the gate verdict, the final decision,
+the full indicator snapshot, and the git SHA that produced it. This
+audit stream is the research instrument underlying every number in
+this paper.
+
+%% =====================================================================
+\section{Selective-Reasoning Formulation}
+\label{sec:formulation}
+
+Let $x_t$ be the decision context at $(\text{ticker}, t)$: analyst
+signals, indicator snapshot, forecast, prior portfolio state. A
+\emph{committee policy} $\pi_C$ produces decision $y_t \in
+\{\textsc{Buy}, \textsc{Sell}, \textsc{Hold}\}$ at token cost $c_t^C$
+(dominated by debate, judge, risk, PM $\sim$27k tokens/decision in our
+system). A \emph{gate} $g : x_t \to \{0,1\}$ decides whether $\pi_C$
+runs. Under the selective policy $\pi_g$:
+\begin{equation}
+  y_t^g =
+  \begin{cases}
+    \pi_C(x_t), & g(x_t) = 1 \\
+    \textsc{Hold}, & g(x_t) = 0
+  \end{cases}
+  \qquad
+  c_t^g = c_g + \mathbf{1}[g(x_t){=}1]\, c_t^C
+\end{equation}
+where $c_g \approx 1.5$k tokens is the gate's own cost.
+
+\paragraph{Metrics.}
+Given a baseline run of $\pi_C$ on the same journal,
+let $\mathcal{D}_{+} = \{t : \pi_C(x_t) \ne \textsc{Hold}\}$ be the
+baseline's directional set. We report:
+
+\begin{itemize}\itemsep1pt
+  \item \textbf{Token savings:} $1 - \sum_t c_t^g / \sum_t c_t^C$.
+  \item \textbf{True-trade recall:}
+    $\lvert\{t \in \mathcal{D}_{+} : g(x_t){=}1\}\rvert / \lvert\mathcal{D}_{+}\rvert$.
+    How many of the baseline's directional calls did the gate preserve?
+  \item \textbf{Directional accuracy at horizon $h$:}
+    $\Pr[\mathrm{sign}(r_{t,t+h}) = \mathrm{sign}(y_t^g) \mid y_t^g \ne \textsc{Hold}]$
+    for $h \in \{1, 5, 20\}$ trading days.
+  \item \textbf{Calibration:} per-agent reliability diagram
+    \citep{niculescu2005predicting} and Brier score \citep{brier1950}.
+  \item \textbf{Sharpe regret:}
+    $S(\pi_g) - S(\pi_C)$ with bootstrap CI (1000 resamples of the
+    per-period return series, resample with replacement).
+\end{itemize}
+
+%% =====================================================================
+\section{Experiments}
+\label{sec:experiments}
+
+\paragraph{Universe and cadence.}
+Four tickers: NVDA (AI-rally growth), TSLA (high-vol EV), ORCL
+(mid-pivot cloud), KO (low-vol staple). Weekly cadence over 2024
+($\sim$53 decisions per ticker, $n=211$ decisions total). INTC
+(2024 H1, declining semi) is an out-of-universe probe for the
+regime-dependence hypothesis ($n=11$).
+
+\paragraph{Arms.}
+\emph{Baseline} ($\pi_C$): full committee every bar. \emph{Gated}
+($\pi_g$): gate-conditioned invocation. Both arms use identical models,
+prompts, and random seeds for every non-gate agent; the LLM cache is
+shared. Journal paths:
+\verb|logs/decisions/nasdaq_focus/| (baseline) and
+\verb|logs/decisions/nasdaq_focus_gated/|.
+
+\paragraph{Ablations.}
+We additionally run three post-hoc ablations that cost no new LLM calls:
+(i) a \emph{thresholded gate} sweeping gate confidence $\tau \in [0,1]$
+to trace the full Pareto frontier; (ii) a \emph{logistic baseline} on
+engineered features from the indicator snapshot; (iii) a
+\emph{leave-one-analyst-out} analysis using the journal's structured
+signals.
+
+\paragraph{Models and configuration.}
+Analysts: Gemini 3.5 Flash with Google-Search grounding (fundamentals,
+sentiment) or ungrounded (technicals). Debate (bull/bear): same model,
+same key, symmetric by construction. Judge: Gemini 3.5 Flash on a
+different key family. Risk and portfolio manager: Gemini 3.5 Pro.
+Edge gate: Gemini 3.5 Flash-lite. Fallback cascade: 6 Gemini keys
+$\to$ Groq $\to$ OpenRouter. All model IDs are pinned (Sec.\ref{sec:reproducibility}).
+
+\paragraph{Fees and execution.}
+Paper-trade with US retail fee profile: zero commission, 1bp slippage
+per side, 2bp round-trip breakeven. Position sizing via fractional
+Kelly from the portfolio manager; stops, targets, trailing and time-
+stop come from the portfolio manager's exit plan and are honored by the
+simulator.
+
+%% =====================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{The cost--recall Pareto frontier}
+\label{sec:results-pareto}
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering FIGURE 2 placeholder:
+    Pareto frontier. x-axis = token savings vs baseline (\%); y-axis
+    = true-trade recall. One curve per ticker, points marked at
+    gate-confidence thresholds $\tau \in \{0, 0.1, \ldots, 0.9\}$.
+    Source: \texttt{reports/gate\_ab/pareto.json}, produced by
+    \texttt{scripts/pareto\_sweep.py}.}}
+  \caption{Cost--recall tradeoff. Up-and-to-the-right is better.
+  Different tickers occupy different regions of the frontier.}
+  \label{fig:pareto}
+\end{figure}
+
+\paragraph{Headline table.} Three threshold slices of the heuristic
+sweep. Here \emph{proceed\%} is the fraction of bars the thresholded
+gate would run the full committee on; \emph{tok.\,saved\%} is the
+fraction of baseline tokens that short-circuiting would avoid;
+\emph{recall} is the fraction of the baseline's $\mathrm{BUY}/\mathrm{SELL}$
+decisions preserved; the last column is $h{=}5$ realized directional
+accuracy on the gate-proceeded directional calls.
+
+\begin{center}\footnotesize
+\begin{tabular}{llrrrr}
+\toprule
+Ticker & $\tau$ & proceed\% & recall & tok.\,saved\% & $h{=}5$ acc on proceed \\
+\midrule
+NVDA & 0.80 & 100\% & 100\% &  0.0\% & 82\% \\
+NVDA & 0.85 & 76\%  & 76\%  & 18.8\% & \textbf{85\%} \\
+NVDA & 0.90 & 53\%  & 76\%  & \textbf{41.4\%} & 85\% \\
+\midrule
+TSLA & 0.80 & 62\%  & ---   & 34.6\% & --- \\
+\midrule
+ORCL & 0.80 & 57\%  & 50\%  & 38.9\% & 67\% \\
+ORCL & 0.85 & 49\%  & 33\%  & 46.6\% & 50\% \\
+\midrule
+KO   & 0.80 & 58\%  & 55\%  & 36.6\% & \textbf{100\%} \\
+KO   & 0.85 & 57\%  & 45\%  & 38.6\% & 100\% \\
+\midrule
+INTC (live LLM gate, $n{=}11$) & --- & 100\% & 1.00 & 0\% & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two asymmetric findings sit in this table. First: on NVDA and KO the
+gate-at-$\tau{=}0.85$ or above \emph{raises} $h{=}5$ directional
+accuracy on the trades it preserves ($82\%{\to}85\%$ on NVDA;
+$82\%{\to}100\%$ on KO), while cutting committee tokens by $18\%$--$39\%$.
+The gate is implicitly a confidence filter: the marginal decisions it
+drops are also the ones more likely to be directional errors. Second:
+on ORCL the same aggression collapses recall ($50\%{\to}33\%$) with
+no further accuracy gain --- the gate drops real trades along with
+noise. The payoff is ticker-specific, not architecture-level.
+
+INTC's $100\%$ proceed rate across 11 live gate invocations is the
+complementary evidence: on a volatile declining name in H1-2024,
+every bar triggers at least one of
+\texttt{vol\_spike}, \texttt{analyst\_disagreement},
+\texttt{composite\_bias\_skew}, \texttt{analyst\_conviction}. The gate
+correctly refuses to save tokens when the regime does not permit it.
+
+\subsection{Confidence asymmetry under symmetric routing}
+\label{sec:results-asymmetry}
+
+Bull and bear share the same model, API key, prompt scaffolding, and
+decoding parameters. Any confidence gap is therefore evidence-driven,
+not model-prior-driven --- yet the gap varies substantially by ticker:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Ticker & $\mathbb{E}[c_{\text{bull}}]$ & $\mathbb{E}[c_{\text{bear}}]$ & $|\Delta|$ \\
+\midrule
+NVDA & 0.679 & 0.419 & 0.260 \\
+TSLA & 0.452 & 0.562 & 0.110 \\
+ORCL & 0.475 & 0.528 & 0.054 \\
+KO   & 0.478 & 0.491 & 0.012 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+We interpret this as \emph{evidence-conditional prior leakage}: the
+same symmetric debate structure retains a ticker-specific
+confidence gap because the public narrative density around each
+ticker differs. NVDA's 2024 AI-rally context overwhelms bear-side
+arguments; KO's narrative vacuum leaves the debate balanced.
+% Follow-up experiment: swap in a counter-narrative prompt, remeasure.
+
+\subsection{Per-agent calibration and the learned-baseline check}
+\label{sec:results-calibration}
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering FIGURE 3 placeholder: Per-agent
+    reliability diagrams (fundamentals, sentiment, technicals, judge,
+    bull, bear) with Brier scores. Source:
+    \texttt{reports/calibration/}, produced by
+    \texttt{scripts/calibration.py}.}}
+  \caption{Per-agent calibration. Diagonal = well-calibrated.}
+  \label{fig:calibration}
+\end{figure}
+
+Per-agent calibration at $h{=}5$, aggregated across the baseline
+window. Brier score $\in[0,1]$ (lower better; $0.25$ = random on a
+binary target); ECE is expected calibration error across bins
+$\{[0,0.5), [0.5,0.6), \ldots, [0.9,1]\}$; \emph{gap} is mean
+confidence $-$ mean realized accuracy (positive $=$ overconfident).
+
+\begin{center}\footnotesize
+\begin{tabular}{llrrrrr}
+\toprule
+Ticker & Agent & $n$ & Brier & ECE & mean conf & mean acc \\
+\midrule
+NVDA & fundamentals & 53 & 0.274 & \textbf{0.208} & 0.831 & 0.623 \\
+NVDA & sentiment    & 44 & 0.258 & 0.165          & 0.801 & 0.636 \\
+NVDA & technicals   & 42 & 0.253 & \textbf{0.055} & 0.507 & 0.452 \\
+NVDA & judge        & 53 & 0.266 & \textbf{0.184} & 0.807 & 0.623 \\
+NVDA & bull         & 53 & 0.229 & 0.057          & 0.680 & 0.623 \\
+NVDA & bear         & 53 & 0.239 & 0.042          & 0.419 & \textbf{0.377} \\
+\midrule
+ORCL & fundamentals &  8 & \textbf{0.115} & 0.075 & 0.800 & \textbf{0.875} \\
+ORCL & technicals   & 47 & 0.254 & 0.028          & 0.517 & 0.489 \\
+ORCL & judge        & 53 & 0.278 & \textbf{0.200} & 0.766 & 0.566 \\
+ORCL & bull         & 53 & 0.238 & 0.073          & 0.582 & 0.509 \\
+ORCL & bear         & 53 & 0.249 & 0.068          & 0.559 & 0.491 \\
+\midrule
+KO   & technicals   & 41 & 0.257 & 0.041          & 0.578 & 0.537 \\
+KO   & judge        & 53 & 0.246 & \textbf{0.135} & 0.758 & 0.623 \\
+KO   & bull         & 53 & 0.249 & 0.095          & 0.586 & 0.491 \\
+KO   & bear         & 53 & 0.243 & 0.072          & 0.581 & 0.509 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three structural observations follow from the calibration table.
+
+\textbf{Technicals is epistemically honest but not predictive.} ECE
+between $0.028$ and $0.055$ across every ticker means the technicals
+agent's stated confidence tracks its realized correctness bin-by-bin
+--- but its mean accuracy is $45$--$54\%$, near chance. The technicals
+agent knows it doesn't know.
+
+\textbf{The blind judge is systematically overconfident.} ECE on the
+judge sits at $0.135$--$0.208$ on NVDA, ORCL, and KO (we omit TSLA
+from this table for space; it shows the same pattern). The blind
+adjudication procedure does not neutralize confidence inflation --- it
+introduces its own.
+
+\textbf{The bear advocate on NVDA is well-calibrated about being
+wrong.} Brier $0.239$ and ECE $0.042$ with mean confidence $0.419$
+and realized accuracy $0.377$: the role posts below-chance $h{=}5$
+accuracy in a rally regime \emph{and} assigns itself appropriately
+low confidence. This is evidence that the adversarial-role prompt
+contributes systematic negative signal on bullish names, not noise.
+
+\paragraph{Learned baseline.}
+As a cost-efficiency check, we fit a leave-one-ticker-out logistic
+regression on seven hand-chosen indicator features (max analyst
+confidence, analyst disagreement, $|\text{net bias}|$, vol regime
+indicators, max candle-pattern ringer, position in 20d range) to
+predict whether the baseline committee returned a directional
+verdict. The same features feed the heuristic gate from
+Sec.\ref{sec:results-pareto}; the comparison isolates \emph{decision
+rule} (linear combination vs. max-of-triggers) from \emph{feature
+vocabulary}.
+
+\begin{center}\footnotesize
+\begin{tabular}{llrrrr}
+\toprule
+Held-out & pos/$n$ & log.\ ROC-AUC & log.\ PR-AUC & heur.\ ROC-AUC & heur.\ PR-AUC \\
+\midrule
+NVDA & 17/53 & $0.438$ & $0.292$ & $\mathbf{0.656}$ & $\mathbf{0.458}$ \\
+ORCL &  6/53 & $0.390$ & $0.171$ & $0.466$ & $0.102$ \\
+KO   & 11/53 & $\mathbf{0.574}$ & $\mathbf{0.369}$ & $0.453$ & $0.190$ \\
+TSLA &  0/53 & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The comparison yields three different answers. On NVDA the heuristic
+gate's trigger-vocabulary dominates the linear baseline (ROC $0.66$
+vs.\ $0.44$); on KO the linear combiner over the same features beats
+the max-of-triggers rule (ROC $0.57$ vs.\ $0.45$); on ORCL both are
+near chance. Read together, this suggests the LLM gate's value is
+located in its trigger \emph{vocabulary}, not its decision rule. A
+future gate design should keep an LLM for trigger identification but
+replace the max-of-triggers rule with a learned per-ticker linear
+combiner --- a direction consistent with the broader literature on
+model routing \citep{ong2024routellm, chen2023frugalgpt}.
+
+\subsection{Argos vs non-LLM baselines}
+\label{sec:results-baselines}
+
+A multi-agent LLM system that cannot be distinguished from a
+frequency-matched random policy at the current sample size would
+not warrant the operating cost. We report that comparison
+explicitly. Each baseline is matched to Argos's own empirical
+$(\mathrm{buy}, \mathrm{sell})$ rate observed in the per-ticker
+journals; random Sharpes are the mean over $1000$ seed draws;
+Argos Sharpe CIs are $95\%$ bootstrap (resample $n{=}53$ period
+returns with replacement, $1000$ draws).
+
+\begin{center}\footnotesize
+\begin{tabular}{llrrc}
+\toprule
+Ticker & Strategy & Return (\%) & Sharpe & 95\% CI \\
+\midrule
+NVDA & buy\_and\_hold         & $+178.9$ & $+1.01$ & --- \\
+NVDA & ma\_cross\_20\_50      & $+39.9$  & $+0.48$ & --- \\
+NVDA & random (emp.\ rate)    & $+74.2$  & $+1.59$ & $[+0.14, +2.97]$ \\
+NVDA & \textbf{argos (ours)}  & $+2.0$   & $\mathbf{+1.68}$ & $[-0.30, +3.83]$ \\
+\midrule
+TSLA & buy\_and\_hold         & $+62.6$  & $+0.49$ & --- \\
+TSLA & ma\_cross\_20\_50      & $+105.8$ & $+0.77$ & --- \\
+TSLA & \textbf{argos (ours)}  & $+0.0$   & --- & --- \\
+\midrule
+ORCL & buy\_and\_hold         & $+62.1$  & $+0.76$ & --- \\
+ORCL & ma\_cross\_20\_50      & $+23.7$  & $+0.42$ & --- \\
+ORCL & random (emp.\ rate)    & $+29.2$  & $+1.15$ & $[-0.32, +2.35]$ \\
+ORCL & \textbf{argos (ours)}  & $+0.03$  & $\mathbf{+1.18}$ & $[-0.55, +2.81]$ \\
+\midrule
+KO   & buy\_and\_hold         & $+7.3$   & $+0.28$ & --- \\
+KO   & ma\_cross\_20\_50      & $+10.7$  & $+0.52$ & --- \\
+KO   & random (emp.\ rate)    & $+3.3$   & $+0.39$ & $[-1.18, +1.96]$ \\
+KO   & \textbf{argos (ours)}  & $+0.27$  & $\mathbf{+0.89}$ & $[-1.19, +3.11]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Argos's point Sharpe exceeds random's mean Sharpe on NVDA, ORCL, and
+KO. On all three, the $95\%$ bootstrap CI contains the random policy's
+mean. We therefore report no statistically distinguishable Sharpe
+advantage at $n{=}53$ weekly decisions per ticker.
+
+The realized dollar returns ($+0.03$--$+2.00\%$) are an order of
+magnitude below buy-and-hold ($+7$--$+179\%$), driven by Argos's
+one-trade-per-ticker decision stream in the baseline (median
+$1$ paper trade/ticker over the year). Sharpe is being measured
+mostly on held-flat periods with intermittent exposure; Argos is in
+practice a market-timing abstainer, not a trading strategy, and its
+Sharpe reflects exposure selection more than position management.
+
+TSLA is a non-result for return: the committee did not open a single
+paper trade across $53$ decisions, forgoing the ticker's $+62.6\%$
+buy-and-hold year. The same abstention is interpreted as
+epistemically correct in Sec.\ref{sec:discussion}; the measurement
+reports both sides.
+
+%% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{When the gate helps.}
+The threshold sweep (Sec.\ref{sec:results-pareto}) identifies the gate
+operating points at which it is lossless or accuracy-improving: NVDA
+and KO at $\tau \geq 0.85$, saving $19$--$39\%$ of committee tokens
+while raising $h{=}5$ accuracy on preserved trades. In each case the
+pre-skipped bars are low-vol, mid-range, with low analyst disagreement
+and weak composite bias --- the committee's counterfactual output on
+those bars is HOLD, so skipping is free.
+
+\paragraph{When the gate hurts.}
+ORCL at the same $\tau$ shows recall collapsing from $100\%$ to
+$33\%$ with no $h{=}5$ accuracy gain beyond $\tau{=}0.80$. The gate
+cannot separate genuine ORCL directional calls from noise using the
+current trigger vocabulary; the LLM gate's recall-biased prompt
+compensates in the live run (ORCL gated runs are future work).
+
+\paragraph{When the gate cannot help.}
+INTC H1-2024 shows the limit of this architecture: a regime in which
+every bar presents a plausibly asymmetric question. Live gate runs
+proceeded on $11/11$ bars, saving no tokens. The paper's framing
+should resist the claim that selective reasoning is universally
+cost-reducing --- it is regime-conditional, and the trigger vocabulary
+determines which regimes benefit.
+
+\paragraph{Decision rule vs trigger vocabulary.}
+Isolating the LLM gate's design into trigger vocabulary and
+decision rule (Sec.\ref{sec:results-calibration}, learned-baseline
+paragraph) produces a ticker-split finding: the LLM gate's
+max-of-triggers rule dominates a logistic baseline on NVDA (ROC
+$0.66$ vs $0.44$) but loses to it on KO ($0.45$ vs $0.57$). This
+suggests the LLM is contributing \emph{what to measure} more than
+\emph{how to combine} --- a cost-conscious successor should keep the
+LLM for feature identification and defer combination to a per-ticker
+learned linear combiner, cutting the gate's per-call budget while
+likely improving its selection quality.
+
+\paragraph{The research-instrument argument.}
+Whether or not gating saves tokens on any given ticker, the per-decision
+audit stream carries the paper's primary contribution: a reproducible
+measurement of multi-agent LLM deliberation under controlled model
+routing, with per-agent calibration, confidence asymmetry, and
+realized-return decomposition exposed for independent inspection.
+The confidence-asymmetry finding
+(Sec.\ref{sec:results-asymmetry}) and the below-chance bear-on-NVDA
+calibration (Sec.\ref{sec:results-calibration}) are unavailable in
+prior multi-agent-LLM-finance work for this reason.
+
+\paragraph{The statistical-honesty argument.}
+The Argos-vs-random overlap (Sec.\ref{sec:results-baselines}) is a
+sample-size result, not a method result: at $n{=}53$ per ticker,
+two policies with Sharpe ratios differing by $0.5$ cannot be
+separated at $\alpha{=}0.05$. We state this openly rather than
+cherry-pick. Scaling the evaluation universe is the first-order
+follow-up.
+
+%% =====================================================================
+\section{Limitations}
+\label{sec:limitations}
+
+Our universe is small (4+1 US tickers), the window is one year, the
+cadence is weekly, and execution is paper. The learned-baseline
+analysis is retrospective; a prospective bandit-style gate is left to
+future work. All results are on Gemini 3.5 Flash family; replication
+with Claude-3-haiku or Mistral-small would isolate model-family effects.
+The simulator applies a US-retail fee profile; execution at scale
+would warrant impact modeling.
+
+%% =====================================================================
+\section{Reproducibility}
+\label{sec:reproducibility}
+
+Journal paths, pinned model IDs, env toggles, git SHAs, and LLM-cache
+hashes for every run are listed in Appendix B. All prompts are in
+\verb|prompts/| at the git SHA named in each run's journal metadata.
+The LLM cache (SQLite) is included in the artifact drop so results
+can be re-derived without LLM credits.
+
+%% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We proposed selective reasoning as a cost-control mechanism for
+multi-agent LLM trading desks and measured it on five US equities
+through 2024. The mechanism is regime-dependent and the savings
+non-uniform; the measurement framework itself is the reusable
+contribution. Treating multi-agent LLM finance as a measurement
+problem --- cost, recall, calibration jointly --- is the direction we
+recommend for future work.
+
+%% =====================================================================
+\bibliographystyle{abbrvnat}
+\begin{thebibliography}{99}\footnotesize
+
+\bibitem[Chow(1970)]{chow1970}
+C.K.~Chow. On optimum recognition error and reject tradeoff.
+\emph{IEEE Trans.\ Information Theory}, 1970.
+
+\bibitem[Geifman and El-Yaniv(2017)]{geifman2017selective}
+Y.~Geifman and R.~El-Yaniv. Selective classification for deep neural networks.
+\emph{NeurIPS}, 2017.
+
+\bibitem[Geifman and El-Yaniv(2019)]{geifman2019selectivenet}
+Y.~Geifman and R.~El-Yaniv. SelectiveNet: a deep neural network with an
+integrated reject option. \emph{ICML}, 2019.
+
+\bibitem[Mozannar and Sontag(2020)]{mozannar2020defer}
+H.~Mozannar and D.~Sontag. Consistent estimators for learning to defer to
+an expert. \emph{ICML}, 2020.
+
+\bibitem[Charusaie et al.(2022)]{charusaie2022sample}
+M.-A.~Charusaie et al. Sample efficient learning of predictors that complement
+humans. \emph{ICML}, 2022.
+
+\bibitem[Du et al.(2023)]{du2023debate}
+Y.~Du et al. Improving factuality and reasoning in language models through
+multiagent debate. \emph{arXiv:2305.14325}, 2023.
+
+\bibitem[Liang et al.(2023)]{liang2023divergent}
+T.~Liang et al. Encouraging divergent thinking in large language models
+through multi-agent debate. \emph{arXiv:2305.19118}, 2023.
+
+\bibitem[Madaan et al.(2023)]{madaan2023selfrefine}
+A.~Madaan et al. Self-Refine: iterative refinement with self-feedback.
+\emph{NeurIPS}, 2023.
+
+\bibitem[Xiao et al.(2024)]{tradingagents}
+Y.~Xiao et al. TradingAgents: multi-agent LLM financial trading framework.
+\emph{arXiv:2412.20138}, 2024.
+
+\bibitem[Zhang et al.(2024)]{finagent}
+A.~Zhang et al. A multimodal foundation agent for financial trading.
+\emph{arXiv:2402.18485}, 2024.
+
+\bibitem[Yu et al.(2023)]{finmem}
+Y.~Yu et al. FinMem: a performance-enhanced LLM trading agent with
+layered memory and character design. \emph{arXiv:2311.13743}, 2023.
+
+\bibitem[Yang et al.(2023)]{fingpt}
+H.~Yang et al. FinGPT: Open-source financial large language models.
+\emph{arXiv:2306.06031}, 2023.
+
+\bibitem[Wu et al.(2023)]{bloomberggpt}
+S.~Wu et al. BloombergGPT: a large language model for finance.
+\emph{arXiv:2303.17564}, 2023.
+
+\bibitem[Chen et al.(2023)]{chen2023frugalgpt}
+L.~Chen et al. FrugalGPT: how to use large language models while reducing
+cost and improving performance. \emph{arXiv:2305.05176}, 2023.
+
+\bibitem[Ong et al.(2024)]{ong2024routellm}
+I.~Ong et al. RouteLLM: learning to route LLMs with preference data.
+\emph{arXiv:2406.18665}, 2024.
+
+\bibitem[Leviathan et al.(2023)]{leviathan2023speculative}
+Y.~Leviathan et al. Fast inference from transformers via speculative decoding.
+\emph{ICML}, 2023.
+
+\bibitem[Brier(1950)]{brier1950}
+G.~W.~Brier. Verification of forecasts expressed in terms of probability.
+\emph{Monthly Weather Review}, 1950.
+
+\bibitem[Niculescu-Mizil and Caruana(2005)]{niculescu2005predicting}
+A.~Niculescu-Mizil and R.~Caruana. Predicting good probabilities with
+supervised learning. \emph{ICML}, 2005.
+
+\bibitem[LangGraph(2024)]{langgraph}
+LangChain Inc. LangGraph: building stateful multi-actor LLM applications.
+\url{https://langchain-ai.github.io/langgraph/}, 2024.
+
+\bibitem[Kronos(2024)]{kronos}
+Shiyu et al. Kronos: candlestick foundation model.
+\url{https://github.com/shiyu-coder/Kronos}, 2024.
+
+\end{thebibliography}
+
+\end{document}

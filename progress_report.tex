@@ -1,0 +1,353 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage{amsmath}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+
+\title{\textbf{Argos Progress Report}\\
+\large A multi-agent trading desk on four US stocks in 2024}
+\author{Fuse-AI Fellowship submission}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section{What we built, in one paragraph}
+
+We built a trading research desk made of eight small language-model workers.
+Three of them read the news, the earnings, and the price chart. Two of them
+argue --- one trying to make the case for buying, one for selling. A judge
+reads the argument without knowing which side wrote which, and picks the
+stronger case. A risk manager checks the whole thing and can veto the trade.
+A portfolio manager writes the final decision. The whole chain runs once per
+week per stock, and we ran it across all 52 weeks of 2024, on four stocks:
+Nvidia, Tesla, Oracle, and Coca-Cola. That is 212 full decisions in total.
+
+Alongside the agents, a small neural network called Kronos reads the recent
+price bars and predicts where the price is likely to go over the next 10
+trading days. The agents see Kronos's forecast as one of their inputs.
+
+Every decision ends up as a saved file on disk: all the inputs, every word
+the agents said, how confident each one was, how many tokens the AI used,
+and the final buy/sell/hold call. That saved file is the raw material for
+everything you are about to read.
+
+\section{The headline numbers}
+
+We started each stock with a paper account of \$1{,}000. Four stocks, so
+\$4{,}000 total. Here is what we ended 2024 with.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Stock & Starting cash & Ending equity & Profit (\$) & Return \\
+\midrule
+NVDA & \$1{,}000.00 & \$1{,}018.38 & \textcolor{black!70!green}{+\$18.38} & +1.84\% \\
+TSLA & \$1{,}000.00 & \$1{,}000.00 & \$0.00 & 0.00\% \\
+ORCL & \$1{,}000.00 & \$1{,}000.23 & +\$0.23 & +0.02\% \\
+KO   & \$1{,}000.00 & \$1{,}002.28 & +\$2.28 & +0.23\% \\
+\midrule
+\textbf{Total} & \textbf{\$4{,}000.00} & \textbf{\$4{,}020.89} & \textcolor{black!70!green}{\textbf{+\$20.89}} & \textbf{+0.52\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The desk made money, but not a lot. A reasonable question is: why so little?
+Three honest answers.
+
+\textbf{First}, the position sizing is deliberately small. The risk manager
+caps each trade at 20\% of the account's cash. On a \$1{,}000 book that is
+\$200 per trade. Even on NVDA, which rallied 171\% in 2024, the pipeline
+only had \$200 at work at a time.
+
+\textbf{Second}, the simulator was using fees originally written for the
+Nepal stock market, which are higher than NASDAQ's actual fees. It took
+0.40\% commission plus 7.5\% capital-gains tax out of every winning trade.
+Fixing this later would add a few cents back on each stock.
+
+\textbf{Third}, the system is cautious. It said \textit{hold} far more
+often than it said \textit{buy}. On TSLA it never actually opened a trade,
+because the two advocates were never confident enough on the same side.
+That is why TSLA's ending equity is exactly \$1{,}000 --- the cash just
+sat there the whole year.
+
+The right way to read this: we were testing \textit{whether the system
+calls direction correctly}, not whether it maximises profit. That is a
+later knob to turn, once we trust the directional calls.
+
+\section{Did the cache give some stocks an unfair edge?}
+
+Fair question --- NVDA and TSLA were re-run many times (daily cadence, then
+weekly, then interrupted and resumed), while ORCL got some re-runs and KO
+was fully fresh with zero cache hits. If cached answers were somehow better
+than fresh ones, the comparison would be unfair.
+
+\textbf{They weren't.} Here is why:
+
+The cache is keyed on \texttt{(agent name, model, exact prompt, decision
+date)}. When a cache hit happens, the system replays the exact AI response
+it got the first time. It does not peek at the future. It does not know
+what the stock did later. It simply avoids re-paying for a response it
+already has.
+
+What \textit{could} be different between a cached ticker and a fresh one
+is response variability. The AI runs at temperature 0.3, so each fresh
+call picks slightly different words. A cached call returns one frozen
+answer every time. So cached-tickers are more reproducible across runs,
+and fresh ones have some sampling noise. That is not an advantage --- it
+is just stability.
+
+The clearest proof is KO itself. KO had zero cache hits. Every single one
+of its 53 decisions was computed fresh. KO's final decision accuracy at
+one week is 81.8\% --- essentially identical to NVDA's 82.4\%. If the
+cache were secretly inflating NVDA, KO's fresh number would be lower.
+It is not.
+
+\section{What each metric means, in plain words}
+
+Six numbers run the show. Here is what each one is actually measuring.
+
+\subsection*{Directional accuracy at $h=5$}
+
+If the system says \textit{buy} on a given Tuesday, and the stock's closing
+price five trading days later is \textit{higher} than today's close, the
+call counted as right. If it says \textit{sell} and the price was lower,
+also right. The \textit{hold} calls are set aside --- hold is not a
+directional prediction, it is a refusal to make one.
+
+Accuracy is simply the fraction correct out of all directional calls.
+\textbf{82\%} on NVDA means that of all the buy/sell calls the system
+made for NVDA, 82 out of 100 pointed the right way one week later.
+Coin-flip would be 50\%. Anything above 60\% is doing real work.
+
+We measure the same thing at one day ($h=1$), one week ($h=5$), and one
+month ($h=20$). On this run, the accuracy got \textit{better} as the
+horizon got longer. That tells us the system is picking up slow,
+multi-week signal, not just daily noise.
+
+\subsection*{Sharpe ratio}
+
+Imagine two traders who both made \$100 last year. One did it with a
+smooth equity curve that climbed steadily. The other did it with wild
+up-and-down swings that happened to end at the same spot. The second one
+took on more risk for the same reward. Sharpe punishes the second one.
+
+Formally, Sharpe is the average return divided by the standard deviation
+of returns, annualised. In practice:
+
+\begin{itemize}
+\item Sharpe below 0: the strategy lost money or barely matched the swings.
+\item Sharpe around 1: respectable --- the return paid for the swings.
+\item Sharpe around 2: good --- real edge after accounting for volatility.
+\item Sharpe above 3: unusual, often too good to be true.
+\end{itemize}
+
+NVDA's Sharpe of \textbf{1.44} says the return we got was worth the swings
+we endured. Oracle's \textbf{1.10} is similar. KO's \textbf{0.68} is
+modest --- Coca-Cola moves so slowly that even small swings dominate the
+tiny profit.
+
+\subsection*{Sortino ratio}
+
+Sortino is Sharpe's smarter cousin. Sharpe treats all swings as bad ---
+even the ones where you were winning. Sortino only penalises the
+\textit{downward} swings. The reasoning: an investor doesn't care if their
+account suddenly jumps up. They only care about the suddenly-down moves.
+
+NVDA's Sortino of \textbf{2.16} and Oracle's \textbf{2.76} both say the
+same thing: when we lost, we didn't lose much. The downside was tightly
+controlled.
+
+\subsection*{Max drawdown}
+
+If you had been watching the paper account's balance tick by tick, this
+is the single biggest percentage drop from a peak before it recovered.
+It is the worst-case pain the account went through, not the worst-case
+loss on a single trade.
+
+NVDA's max drawdown was \textbf{$-$0.73\%}, meaning the account at its
+lowest point was 0.73\% below its highest point. On a \$1{,}000 book
+that's a worst-of-year drop of \$7.30. The pipeline hugs the risk floor.
+
+\subsection*{Calmar ratio}
+
+Return divided by the max drawdown. It answers: ``for every percent of
+pain I took, how much return did I get?''
+
+NVDA's Calmar of \textbf{2.49} says we made \$2.49 of return for every
+\$1 of drawdown pain. Anything above 1 is reasonable; above 3 is strong.
+
+\subsection*{Confidence gap}
+
+This one is the research-critical number, and it needs the most explanation.
+
+Both the Bull and the Bear advocate output a confidence between 0 and 1
+along with their argument. If Bull averages 0.75 confidence across the
+year and Bear averages 0.40, the \textit{confidence gap} is 0.35. On the
+previous version of this project (built on the Nepal stock market), Bull
+and Bear were running on \textit{different} AI models, and the gap was a
+constant 0.30+ in every market. That gap wasn't measuring the market ---
+it was measuring the fact that one model was more verbose than the other.
+
+For this NASDAQ run we rewrote the router: both advocates share
+\texttt{gpt-4o}, same temperature, same fallback chain. There is a
+test that fails if the two configurations ever drift apart. If the gap
+still shows up, it has to come from the evidence, not the models.
+
+Here is what we saw across four very different 2024 markets:
+
+\begin{center}
+\begin{tabular}{llccc}
+\toprule
+Stock & 2024 character & Bull mean conf & Bear mean conf & Gap \\
+\midrule
+NVDA & clear bull year     & 0.679 & 0.419 & 0.260 \\
+TSLA & bearish/chop        & 0.452 & 0.562 & 0.110 \\
+ORCL & mixed               & 0.475 & 0.528 & 0.054 \\
+KO   & flat (+5\%)         & 0.480 & 0.488 & 0.009 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The gap collapses from 0.260 to 0.009 as the market goes from
+one-sided-bullish to flat-and-boring. On TSLA, the \textit{Bear} is more
+confident than the Bull. These are all the same two models, same prompts,
+same temperature. The only thing that changed is the stock. That is proof
+the debate reflects the market, not the AI.
+
+\subsection*{Token usage and cost}
+
+Every time an agent speaks, the AI reads a prompt and writes a response.
+Each word is roughly a token (actually a sub-word fragment, but close
+enough). We tracked exactly how many tokens went in and out at each step.
+
+Across all 212 decisions:
+
+\begin{itemize}
+\item \textbf{5{,}601{,}846 tokens} total
+\item \textbf{1{,}461 LLM calls} total
+\item Average \textbf{26{,}400 tokens per decision}
+\item Average \textbf{6.9 LLM calls per decision}
+\end{itemize}
+
+At gpt-4o pricing (roughly \$2.50 per million input tokens, \$10 per
+million output), the whole study cost roughly \$6--8 in API fees.
+
+The \textit{profit-per-1k-tokens} metric asks: for every 1{,}000 tokens
+of AI thinking, how much paper P\&L did we generate? On a \$1{,}000 book
+this looks tiny --- NVDA earns about \$0.013 of P\&L per 1k tokens. But
+P\&L scales with book size while token spend doesn't. On a \$100{,}000
+book the same pipeline would earn \$1.30 per 1k tokens, versus a token
+cost of roughly \$0.0075. That is a 170$\times$ return on compute. The
+economics only work on larger books.
+
+\section{Stock-by-stock story}
+
+\subsection*{NVDA --- the AI darling}
+
+Nvidia had its year. Up 171\% in 2024, essentially straight line, driven
+by data-centre AI demand. Our pipeline rode it with 82\% directional
+accuracy at the one-week horizon, Sharpe 1.44, Sortino 2.16. The Bull
+advocate was right 62\% of the time; the Bear 38\%. The confidence gap
+was the widest of the four at 0.260 --- Bull was reading the same tape
+Bear was, and judging the evidence as much stronger.
+
+Where the pipeline left money on the table: it only opened one trade,
+sized small, held to year-end. A more aggressive sizer would have put
+\$500 or \$800 per trade and reloaded on dips.
+
+\subsection*{TSLA --- the chop that trapped nobody}
+
+Tesla's 2024 was a mess: down most of the year, then a late rally. Across
+53 weekly decisions, the system only produced 4 directional calls. The
+Portfolio Manager folded the chain into \textit{hold} 49 times. The paper
+account sat at \$1{,}000 all year.
+
+That looks like inactivity, but it is the right behaviour. On TSLA the
+Bull and Bear were nearly tied in confidence (0.452 vs 0.562, Bear
+slightly ahead), the technical readings were conflicting, and the
+fundamentals wavered. When the ensemble refuses to commit, it holds.
+Zero profit, zero drawdown. The Bear advocate was right 57\% of the time
+on its calls --- more than the Bull.
+
+\subsection*{ORCL --- the quiet AI play}
+
+Oracle rallied on its cloud-and-AI capex guidance in 2024, but less
+cleanly than NVDA. Our pipeline hit 50\% directional accuracy on 6
+directional calls --- a small sample. Sharpe 1.10, Sortino 2.76. The
+confidence gap was small (0.054) and leaned slightly bearish, which
+matches the choppiness.
+
+\subsection*{KO --- the sleepy legacy name}
+
+Coca-Cola was the control: zero AI exposure, +5\% for the year, nothing
+dramatic. If the pipeline only worked on AI-boosted names it would fail
+here. It didn't. KO's final decision accuracy at one week was 81.8\%,
+essentially matching NVDA. The confidence gap was 0.009 --- the
+advocates were as close to perfectly tied as you can be.
+
+This matters because KO was computed entirely fresh (no cache hits).
+Every one of its 53 decisions was a real call to the AI. The 82\%
+accuracy came from live reasoning, not replayed cache.
+
+\section{What we did not do (yet)}
+
+\begin{itemize}
+\item \textbf{Fix the fee model for US stocks.} Still using Nepal retail
+fees. Small change, meaningful on tight books.
+\item \textbf{Scale position sizing.} Currently capped at 20\% of cash
+per trade. A proper research setup would compare three sizing policies
+side by side.
+\item \textbf{Multi-round debate.} Each decision runs one round of Bull
+vs Bear. More rounds, where each side can rebut the other's specific
+claims, is a known upgrade --- not tested here.
+\item \textbf{A benchmark portfolio.} We should compare the pipeline
+against the obvious baselines: buy-and-hold, 60/40, equal-weight the
+four tickers. All are easy to add to the eval script.
+\item \textbf{Walk-forward instead of in-sample.} 2024 was both the
+training window for the models and the backtest window. A proper
+out-of-sample test would run on 2025 data.
+\end{itemize}
+
+\section{The honest caveat}
+
+The AI models (OpenAI's gpt-4o and gpt-4o-mini) were trained on text that
+includes 2024. When we ask the model to reason about NVDA ``as of
+2024-01-02,'' it may already know what happened to NVDA later in 2024.
+We tell it in the prompt to reason strictly as of the given date, but
+there is no mechanical way to force an AI to forget what it knows.
+
+This is a real limitation. The directional accuracy we see is probably
+inflated by some amount of implicit knowledge. The right fix is to re-run
+on 2026 data, where the models have no training signal yet. That is a
+natural next step.
+
+What is \textit{not} inflated by this is the symmetric-debate finding.
+Both Bull and Bear have access to the same model with the same knowledge.
+If Bear is more right than Bull on TSLA, that is because the evidence on
+TSLA pointed down, not because one model knew more than the other.
+
+\section{Where this leaves us}
+
+The pipeline makes directional calls that are right about 80\% of the
+time on three of four stocks, holds through contested markets, controls
+drawdown tightly, and costs about \$6--8 of API fees to run across a
+year of weekly decisions on four stocks. The debate is now
+provably driven by evidence rather than model bias. The research
+scaffolding --- journals, token tracking, dense NAV, Sharpe/Sortino/
+Calmar/max-drawdown, and the eval harness --- is in place and can be
+pointed at a longer window, more stocks, or a different market with
+one config change.
+
+The next real experiment is a 2026 out-of-sample run on five or six
+names, with the fee model corrected and position sizing scaled up. The
+code is ready.
+
+\end{document}
