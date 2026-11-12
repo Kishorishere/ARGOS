@@ -36,6 +36,41 @@ class AnalystSignal(BaseModel):
     )
 
 
+# ── Edge gate (pre-debate triage) ───────────────────────────────────────────
+
+class EdgeGateVerdict(BaseModel):
+    """Output schema for the pre-debate edge gate.
+
+    One cheap LLM call per (ticker, date) that reads the analyst signals +
+    today's indicator snapshot and decides whether the full bull-vs-bear
+    debate is worth running. On `proceed=False` the graph short-circuits to
+    HOLD and skips bull/bear/judge/risk/PM — the big-token stages. On
+    `proceed=True` the normal pipeline runs unchanged.
+
+    Design bias: recall-biased. Missing a trading day is costly; running a
+    debate that ends in HOLD is cheap. When in doubt → proceed.
+    """
+
+    proceed: bool = Field(
+        description="True = run the full debate. False = skip to HOLD."
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0,
+        description="Gate's confidence in its own call (0.5 = coin flip)",
+    )
+    triggers: list[str] = Field(
+        default_factory=list, max_length=5,
+        description="Which specific signals suggest an asymmetric bet today "
+                    "(e.g. 'vol spike', 'earnings_within_3d', 'range_breakout', "
+                    "'analyst_disagreement', 'kronos_high_conviction'). Empty "
+                    "when proceed=False.",
+    )
+    reasoning: str = Field(
+        description="≤60 words. Why proceed or why skip. Cite the specific "
+                    "analyst signals / indicator values that drove the call.",
+    )
+
+
 # ── Debate schemas ───────────────────────────────────────────────────────────
 
 class DebateArgument(BaseModel):
