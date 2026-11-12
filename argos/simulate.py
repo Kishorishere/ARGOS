@@ -65,13 +65,18 @@ NEPAL_CGT_SHORT_TERM = 7.5    # % of realized profit
 @dataclass
 class Simulator:
     starting_cash: float = 100_000.0
-    slippage_bps: float = 5.0
-    # Legacy simple-fee knobs kept for calibration / A-B tests.
-    commission_bps: float = 10.0
-    # NEW: Nepal-realistic fee mode (default ON). When True, ignores
-    # commission_bps and uses the tiered NEPSE broker fee schedule below.
-    nepal_fees: bool = True
-    apply_cgt: bool = True
+    # US retail realistic: 1 bp half-spread / slippage per side on liquid
+    # large-caps (NVDA, TSLA, ORCL, KO). Wider names should pass 2–3.
+    slippage_bps: float = 1.0
+    # Zero-commission brokers (Robinhood, IBKR Lite, Schwab) are the retail
+    # baseline on US equities. The broker's revenue is PFOF, which we already
+    # capture via slippage_bps above — don't double-count it as commission.
+    commission_bps: float = 0.0
+    # Fee profile: default US retail (0 commission, 1 bp slippage, 0 CGT) for
+    # the NASDAQ research harness. Flip nepal_fees=True to re-enable the
+    # tiered NEPSE broker fee + SEBON + short-term CGT schedule below.
+    nepal_fees: bool = False
+    apply_cgt: bool = False
     # Overrides (defaults match the constants above)
     commission_pct: float = NEPAL_COMMISSION_PCT
     sebon_pct: float = NEPAL_SEBON_PCT
@@ -82,9 +87,21 @@ class Simulator:
     trades: list[PaperTrade] = field(default_factory=list, init=False)
     fees_paid: float = field(default=0.0, init=False)
     cgt_paid: float = field(default=0.0, init=False)
+    # Dense mark-to-market series: one (date, equity) per decision step.
+    nav_curve: list[dict] = field(default_factory=list, init=False)
 
     def __post_init__(self):
         self.cash = self.starting_cash
+
+    def mark_to_market(self, date: str, price: float) -> float:
+        """Record NAV at `date` using `price` to value any open position."""
+        equity = self.cash
+        if self.open_trade is not None:
+            equity += self.open_trade.quantity * price
+        self.nav_curve.append({"date": date, "equity": round(equity, 4),
+                               "price": round(price, 4),
+                               "has_position": self.open_trade is not None})
+        return equity
 
     def _apply_slippage(self, price: float, side: str) -> float:
         adj = self.slippage_bps / 10_000
@@ -199,9 +216,11 @@ class Simulator:
         equity = self.cash
         if self.open_trade is not None and last_price is not None:
             equity += self.open_trade.quantity * last_price
-        # Breakeven per round-trip (Nepal-realistic mode)
+        # Round-trip breakeven: the move needed to break even on one entry +
+        # one exit after fees AND slippage. Nepal mode uses the tiered broker
+        # schedule; flat_bps mode counts commission + slippage per side.
         round_trip_pct = 2 * (self.commission_pct + self.sebon_pct) if self.nepal_fees \
-            else 2 * self.commission_bps / 100
+            else 2 * (self.commission_bps + self.slippage_bps) / 100
         # U3 exit-reason breakdown for post-run analysis
         by_reason: dict[str, int] = {}
         for t in self.trades:
@@ -213,6 +232,7 @@ class Simulator:
             "losses": losses,
             "hit_rate_pct": round(100 * wins / max(wins + losses, 1), 2),
             "avg_holding_return_pct": round(avg_ret, 3),
+            "starting_cash": round(self.starting_cash, 2),
             "final_cash": round(self.cash, 2),
             "final_equity_incl_open": round(equity, 2),
             "return_pct": round(100 * (equity / self.starting_cash - 1), 3),
@@ -221,6 +241,7 @@ class Simulator:
             "breakeven_per_trade_pct": round(round_trip_pct, 3),
             "fee_mode": "nepal" if self.nepal_fees else "flat_bps",
             "exits_by_reason": by_reason,
+            "nav_curve": self.nav_curve,
         }
 
 
@@ -239,19 +260,22 @@ def _iter_journal(journal_dir: Path, ticker: str) -> list[dict]:
     return records
 
 
-def replay(journal_dir: Path, ticker: str) -> dict:
-    """Replay all journal decisions for `ticker` and print/return the P&L stats.
+def replay(journal_dir: Path, ticker: str, starting_cash: float = 100_000.0,
+           nepal_fees: bool = False) -> dict:
+    """Replay all journal decisions for `ticker` and return the P&L stats.
 
-    Only the latest attempt per date is applied (in journal order — the last
-    line for a given date wins), so multiple runs of the same date don't
-    double-trade.
+    `starting_cash` defaults to $100k for NEPSE legacy; the NASDAQ research
+    harness passes 1000.0 so each ticker gets a $1k book and the equity curve
+    is directly comparable across names.
+
+    The simulator mark-to-markets on EVERY decision date (not just entry /
+    exit) so the returned `nav_curve` is dense enough for Sharpe/Sortino.
     """
     records = _iter_journal(journal_dir, ticker)
     if not records:
         logger.warning("No journal records for ticker=%s in %s", ticker, journal_dir)
         return {}
 
-    # Keep only the last record per date
     latest_by_date: dict[str, dict] = {}
     for r in records:
         d = r.get("date")
@@ -259,22 +283,26 @@ def replay(journal_dir: Path, ticker: str) -> dict:
             latest_by_date[d] = r
     ordered = [latest_by_date[d] for d in sorted(latest_by_date)]
 
-    sim = Simulator()
+    sim = Simulator(starting_cash=starting_cash, nepal_fees=nepal_fees)
     last_price = None
     for r in ordered:
         decision = r.get("final_decision") or {}
         action = decision.get("action", "hold")
         size = float(decision.get("position_size", 0.0))
         confidence = float(decision.get("confidence", 0.0))
-        # Use the ohlcv_summary's last_close as the "fill" proxy — the loader
-        # already truncated to as_of_date, so this is next-usable price.
         last_close = (r.get("ohlcv_summary") or {}).get("last_close")
         if last_close is None:
             continue
         last_price = float(last_close)
         sim.step(r["date"], action, size, last_price, confidence)
+        # Dense NAV: record equity after processing this decision — gives us
+        # one mark per decision date even when position is held unchanged.
+        sim.mark_to_market(r["date"], last_price)
 
     sim.close_open_trade(ordered[-1]["date"], last_price or 0.0)
+    if last_price is not None:
+        sim.mark_to_market(ordered[-1]["date"] + "_close", last_price)
     stats = sim.report(last_price)
-    logger.info("Paper P&L for %s: %s", ticker, stats)
+    logger.info("Paper P&L for %s (start=$%.0f): return=%.2f%% trades=%d",
+                ticker, starting_cash, stats["return_pct"], stats["trades"])
     return stats

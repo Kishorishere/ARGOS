@@ -27,6 +27,7 @@ def load_ohlcv(
     ticker: str,
     as_of_date: str,
     lookback_days: int = DEFAULT_LOOKBACK_DAYS,
+    allow_today: bool = False,
 ) -> dict:
     """Load OHLCV data for a ticker, strictly limited to data up to as_of_date.
 
@@ -34,20 +35,26 @@ def load_ohlcv(
         ticker: Stock ticker symbol (e.g., "AAPL").
         as_of_date: The evaluation date in "YYYY-MM-DD" format. No data after this date.
         lookback_days: How many calendar days of history to fetch before as_of_date.
+        allow_today: Live-mode escape hatch. When True, as_of_date may equal today
+            (so live snapshots/analyzes can run on partial intraday data). The
+            no-lookahead guard still rejects *future* dates in either mode;
+            backtest callers leave this False to preserve the leakage guarantee.
 
     Returns:
         Dict with keys: ticker, as_of_date, ohlcv (list of dicts), and metadata.
 
     Raises:
-        ValueError: If as_of_date is in the future or data is empty.
+        ValueError: If as_of_date is strictly in the future (always), or equals
+            today when allow_today is False, or data is empty.
     """
     as_of = datetime.strptime(as_of_date, "%Y-%m-%d")
 
-    # No-lookahead guard: hard-fail if as_of_date is today or future
+    # No-lookahead guard: future dates always fail; today fails unless allow_today.
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    if as_of >= today:
+    if as_of > today or (as_of == today and not allow_today):
         raise ValueError(
-            f"as_of_date ({as_of_date}) must be strictly in the past. "
+            f"as_of_date ({as_of_date}) must be strictly in the past "
+            f"(set allow_today=True for live mode). "
             f"This prevents data leakage in backtesting."
         )
 
@@ -80,6 +87,7 @@ def load_ohlcv(
         df.columns = df.columns.get_level_values(0)
 
     # Final no-lookahead check: no row should have a date after as_of_date
+    # (equal is allowed in live mode — the last bar is today's partial bar).
     last_row_date = df.index[-1].to_pydatetime().replace(
         hour=0, minute=0, second=0, microsecond=0
     )
