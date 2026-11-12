@@ -8,458 +8,198 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: single-column research-note reading width, dense per-agent tables,
-   two-column ticker comparison for the debate-symmetry finding, per-decision
-   cards with monospace evidence blocks. Palette leans warm-paper in light,
-   deep charcoal in dark. Accent is a muted teal-green (not the AI-default
-   terracotta). Semantic colors (bull/bear/neutral) are separate from accent. */
 :root {
-  --paper: #F6F2EA;
-  --ink: #1E2530;
-  --ink-mute: #55606E;
-  --rule: #D9D1C0;
-  --card: #FBF8F1;
-  --accent: #2B6E63;
-  --pos: #2D6A4F;
-  --neg: #9B2C1C;
-  --neu: #A66A2C;
-  --bull-tint: rgba(45,106,79,0.10);
-  --bear-tint: rgba(155,44,28,0.10);
-  --neu-tint: rgba(166,106,44,0.12);
-  --shadow: 0 1px 0 rgba(30,37,48,0.05), 0 6px 20px -12px rgba(30,37,48,0.15);
-  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --f-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --f-mono: "JetBrains Mono", "SF Mono", Consolas, Menlo, monospace;
+  --paper:#F6F2EA; --ink:#1E2530; --ink-mute:#55606E; --rule:#D9D1C0; --card:#FBF8F1;
+  --accent:#2B6E63; --pos:#2D6A4F; --neg:#9B2C1C; --neu:#A66A2C;
+  --bull-tint:rgba(45,106,79,0.10); --bear-tint:rgba(155,44,28,0.10); --neu-tint:rgba(166,106,44,0.12);
+  --kronos-tint:rgba(43,110,99,0.09);
+  --shadow:0 1px 0 rgba(30,37,48,0.05),0 6px 20px -12px rgba(30,37,48,0.15);
+  --f-display:"Fraunces",Georgia,serif; --f-body:"Source Sans 3",-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono","SF Mono",Consolas,monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #12171E;
-    --ink: #EDE6D4;
-    --ink-mute: #93A0B0;
-    --rule: #2A333F;
-    --card: #1A2028;
-    --accent: #6EBFAE;
-    --pos: #82C99E;
-    --neg: #E38B7A;
-    --neu: #E0B278;
-    --bull-tint: rgba(130,201,158,0.10);
-    --bear-tint: rgba(227,139,122,0.10);
-    --neu-tint: rgba(224,178,120,0.10);
-    --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 6px 20px -8px rgba(0,0,0,0.5);
+    --paper:#12171E; --ink:#EDE6D4; --ink-mute:#93A0B0; --rule:#2A333F; --card:#1A2028;
+    --accent:#6EBFAE; --pos:#82C99E; --neg:#E38B7A; --neu:#E0B278;
+    --bull-tint:rgba(130,201,158,0.10); --bear-tint:rgba(227,139,122,0.10); --neu-tint:rgba(224,178,120,0.10);
+    --kronos-tint:rgba(110,191,174,0.10);
+    --shadow:0 1px 0 rgba(0,0,0,0.4),0 6px 20px -8px rgba(0,0,0,0.5);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #12171E;
-  --ink: #EDE6D4;
-  --ink-mute: #93A0B0;
-  --rule: #2A333F;
-  --card: #1A2028;
-  --accent: #6EBFAE;
-  --pos: #82C99E;
-  --neg: #E38B7A;
-  --neu: #E0B278;
-  --bull-tint: rgba(130,201,158,0.10);
-  --bear-tint: rgba(227,139,122,0.10);
-  --neu-tint: rgba(224,178,120,0.10);
-  --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 6px 20px -8px rgba(0,0,0,0.5);
+  --paper:#12171E; --ink:#EDE6D4; --ink-mute:#93A0B0; --rule:#2A333F; --card:#1A2028;
+  --accent:#6EBFAE; --pos:#82C99E; --neg:#E38B7A; --neu:#E0B278;
+  --bull-tint:rgba(130,201,158,0.10); --bear-tint:rgba(227,139,122,0.10); --neu-tint:rgba(224,178,120,0.10);
+  --kronos-tint:rgba(110,191,174,0.10);
+  --shadow:0 1px 0 rgba(0,0,0,0.4),0 6px 20px -8px rgba(0,0,0,0.5);
   color-scheme: dark;
 }
-
-html, body { margin: 0; }
+html,body { margin:0 }
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--f-body);
-  font-size: 16px;
-  line-height: 1.55;
-  padding-block: 40px;
-  padding-inline: max(20px, calc((100% - 800px) / 2));
-  -webkit-font-smoothing: antialiased;
+  background:var(--paper); color:var(--ink); font-family:var(--f-body);
+  font-size:16px; line-height:1.55; padding-block:40px;
+  padding-inline:max(20px, calc((100% - 840px)/2)); -webkit-font-smoothing:antialiased;
 }
-img { max-width: 100%; }
-[hidden] { display: none !important; }
-.wrap { display: flex; flex-direction: column; gap: 40px; }
+img { max-width:100% }
+.wrap { display:flex; flex-direction:column; gap:40px }
+h1 { font-family:var(--f-display); font-weight:500; font-variation-settings:"opsz" 96;
+     font-size:clamp(38px,6vw,58px); line-height:1.02; letter-spacing:-0.02em;
+     margin:0; text-wrap:balance; }
+h2 { font-family:var(--f-display); font-weight:500; font-variation-settings:"opsz" 32;
+     font-size:28px; line-height:1.15; letter-spacing:-0.01em; margin:0 0 12px; text-wrap:balance; }
+h3 { font-family:var(--f-body); font-weight:600; font-size:14px; text-transform:uppercase;
+     letter-spacing:0.08em; color:var(--ink-mute); margin:0 0 16px; }
+p { margin:0 0 14px }
+.lede { font-family:var(--f-display); font-weight:400; font-variation-settings:"opsz" 24;
+        font-size:20px; line-height:1.45; color:var(--ink-mute); margin-top:12px; text-wrap:balance; }
+a { color:var(--accent); text-underline-offset:3px }
+code,.mono { font-family:var(--f-mono); font-size:0.9em }
 
-h1 {
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-variation-settings: "opsz" 96;
-  font-size: clamp(38px, 6vw, 58px);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  margin: 0;
-  text-wrap: balance;
-}
-h2 {
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-variation-settings: "opsz" 32;
-  font-size: 28px;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  margin: 0 0 12px;
-  text-wrap: balance;
-}
-h3 {
-  font-family: var(--f-body);
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-mute);
-  margin: 0 0 16px;
-}
-p { margin: 0 0 14px; }
-.lede {
-  font-family: var(--f-display);
-  font-weight: 400;
-  font-variation-settings: "opsz" 24;
-  font-size: 20px;
-  line-height: 1.45;
-  color: var(--ink-mute);
-  margin-top: 12px;
-  text-wrap: balance;
-}
-a { color: var(--accent); text-underline-offset: 3px; }
-code, .mono { font-family: var(--f-mono); font-size: 0.9em; }
+header .eyebrow { font-family:var(--f-mono); font-size:12px; text-transform:uppercase;
+                   letter-spacing:0.12em; color:var(--accent); margin-bottom:12px; }
+.status-strip { display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px;
+                 padding:14px 18px; background:var(--card); border:1px solid var(--rule);
+                 border-left:3px solid var(--pos); border-radius:4px;
+                 font-family:var(--f-mono); font-size:13px; margin-top:28px; }
+.status-strip .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
+                      background:var(--pos); }
+.status-strip .key { color:var(--ink-mute) }
+.status-strip .val { color:var(--ink); font-weight:500 }
 
-header .eyebrow {
-  font-family: var(--f-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  margin-bottom: 12px;
-}
-.status-strip {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px;
-  padding: 14px 18px;
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--neu);
-  border-radius: 4px;
-  font-family: var(--f-mono);
-  font-size: 13px;
-  margin-top: 28px;
-}
-.status-strip .dot {
-  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--neu); animation: pulse 2s infinite;
-}
-@keyframes pulse { 50% { opacity: 0.35; } }
-.status-strip .key { color: var(--ink-mute); }
-.status-strip .val { color: var(--ink); font-weight: 500; }
+.hero-metrics { display:grid; gap:1px; grid-template-columns:repeat(4,1fr);
+                 background:var(--rule); border:1px solid var(--rule); border-radius:4px;
+                 overflow:hidden; box-shadow:var(--shadow); }
+.hero-metrics .cell { background:var(--card); padding:22px 18px; display:flex; flex-direction:column; gap:6px }
+.hero-metrics .cell .label { font-family:var(--f-mono); font-size:11px; text-transform:uppercase;
+                              letter-spacing:0.1em; color:var(--ink-mute); }
+.hero-metrics .cell .figure { font-family:var(--f-display); font-weight:500;
+                               font-variation-settings:"opsz" 144; font-size:38px; line-height:1;
+                               letter-spacing:-0.02em; font-variant-numeric:tabular-nums; color:var(--ink); }
+.hero-metrics .cell .figure.pos { color:var(--pos) }
+.hero-metrics .cell .figure.neg { color:var(--neg) }
+.hero-metrics .cell .caption { font-family:var(--f-mono); font-size:12px; color:var(--ink-mute) }
+@media (max-width:760px) { .hero-metrics { grid-template-columns:repeat(2,1fr) } }
+@media (max-width:460px) { .hero-metrics { grid-template-columns:1fr } }
 
-.hero-metrics {
-  display: grid; gap: 1px;
-  grid-template-columns: repeat(3, 1fr);
-  background: var(--rule);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-.hero-metrics .cell {
-  background: var(--card);
-  padding: 24px 22px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.hero-metrics .cell .label {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-}
-.hero-metrics .cell .figure {
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-variation-settings: "opsz" 144;
-  font-size: 44px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-.hero-metrics .cell .figure.pos { color: var(--pos); }
-.hero-metrics .cell .figure.neg { color: var(--neg); }
-.hero-metrics .cell .figure.neu { color: var(--neu); }
-.hero-metrics .cell .caption {
-  font-family: var(--f-mono);
-  font-size: 12px;
-  color: var(--ink-mute);
-}
-@media (max-width: 640px) { .hero-metrics { grid-template-columns: 1fr; } }
+section > header { margin-bottom:20px }
+section .prose { max-width:720px }
+.datatable-wrap { overflow-x:auto; border-radius:4px; border:1px solid var(--rule);
+                   background:var(--card); box-shadow:var(--shadow); }
+table.data { width:100%; min-width:0; border-collapse:collapse; font-family:var(--f-mono);
+              font-size:13px; font-variant-numeric:tabular-nums; }
+table.data thead th { text-align:left; padding:12px 10px; border-bottom:1px solid var(--rule);
+                       font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                       color:var(--ink-mute); background:var(--card); }
+table.data thead th.grp { text-align:center; color:var(--accent) }
+table.data tbody td { padding:11px 10px; border-bottom:1px solid var(--rule); color:var(--ink) }
+table.data tbody tr:last-child td { border-bottom:none }
+table.data td.num { text-align:right }
+table.data td.pos { color:var(--pos); font-weight:500 }
+table.data td.neg { color:var(--neg); font-weight:500 }
+table.data td.neu { color:var(--ink-mute) }
+table.data td.agent { font-family:var(--f-body); font-weight:500 }
 
-section > header { margin-bottom: 20px; }
-section .prose { max-width: 680px; }
+.gap-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+             background:var(--rule); border:1px solid var(--rule); border-radius:4px;
+             margin-top:20px; overflow:hidden; }
+@media (max-width:900px) { .gap-grid { grid-template-columns:repeat(2,1fr) } }
+@media (max-width:500px) { .gap-grid { grid-template-columns:1fr } }
+.gap-card { padding:20px; background:var(--card); display:flex; flex-direction:column; gap:10px }
+.gap-card .ticker { font-family:var(--f-display); font-weight:500; font-variation-settings:"opsz" 48;
+                     font-size:20px; letter-spacing:-0.01em; }
+.gap-card .ticker .sub { font-family:var(--f-mono); font-size:10px; text-transform:uppercase;
+                          letter-spacing:0.1em; color:var(--ink-mute); margin-left:6px; display:block; margin-top:3px; }
+.gap-card .conf-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px }
+.gap-card .conf { display:flex; flex-direction:column; gap:2px }
+.gap-card .conf .n { font-family:var(--f-display); font-weight:500;
+                      font-variation-settings:"opsz" 96; font-size:26px; line-height:1;
+                      font-variant-numeric:tabular-nums; }
+.gap-card .conf.bull .n { color:var(--pos) }
+.gap-card .conf.bear .n { color:var(--neg) }
+.gap-card .conf .l { font-family:var(--f-mono); font-size:10px; text-transform:uppercase;
+                      letter-spacing:0.08em; color:var(--ink-mute); }
+.gap-card .absgap { font-family:var(--f-mono); font-size:12px; padding:6px 10px;
+                     background:var(--paper); border:1px solid var(--rule); border-radius:4px;
+                     font-variant-numeric:tabular-nums; }
+.gap-card .verdict { font-family:var(--f-body); font-size:13px; line-height:1.45; }
 
-.datatable-wrap {
-  overflow-x: auto;
-  border-radius: 4px;
-  border: 1px solid var(--rule);
-  background: var(--card);
-  box-shadow: var(--shadow);
+.decisions { display:flex; flex-direction:column; gap:22px }
+.decision { background:var(--card); border:1px solid var(--rule); border-radius:4px;
+             box-shadow:var(--shadow); overflow:hidden; }
+.decision > .head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between;
+                     gap:10px; padding:16px 22px; border-bottom:1px solid var(--rule); }
+.decision .date { font-family:var(--f-mono); font-size:13px; color:var(--ink-mute); }
+.decision .action-pill { font-family:var(--f-mono); font-size:11px; text-transform:uppercase;
+                          letter-spacing:0.12em; padding:4px 10px; border-radius:999px; font-weight:600; }
+.action-pill.buy { background:var(--bull-tint); color:var(--pos) }
+.action-pill.sell { background:var(--bear-tint); color:var(--neg) }
+.action-pill.hold { background:var(--neu-tint); color:var(--neu) }
+.decision .body { padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px }
+.signal-row { display:grid; gap:10px; grid-template-columns:repeat(3,1fr) }
+@media (max-width:560px) { .signal-row { grid-template-columns:1fr } }
+.signal { padding:12px 14px; border:1px solid var(--rule); border-radius:4px;
+           display:flex; flex-direction:column; gap:4px; }
+.signal .name { font-family:var(--f-mono); font-size:10px; text-transform:uppercase;
+                 letter-spacing:0.1em; color:var(--ink-mute); }
+.signal .val { font-family:var(--f-body); font-weight:600; font-size:15px }
+.signal .conf { font-family:var(--f-mono); font-size:12px; color:var(--ink-mute);
+                 font-variant-numeric:tabular-nums; }
+.signal .val.bullish { color:var(--pos) }
+.signal .val.bearish { color:var(--neg) }
+.signal .val.neutral { color:var(--ink-mute) }
+.debate { display:grid; grid-template-columns:1fr 1fr; gap:12px; border:1px solid var(--rule);
+           border-radius:4px; overflow:hidden; }
+@media (max-width:640px) { .debate { grid-template-columns:1fr } }
+.debate .side { padding:14px 16px; display:flex; flex-direction:column; gap:6px }
+.debate .side.bull { background:var(--bull-tint) }
+.debate .side.bear { background:var(--bear-tint) }
+.debate .side .role { font-family:var(--f-mono); font-size:10px; text-transform:uppercase;
+                       letter-spacing:0.12em; display:flex; justify-content:space-between; gap:8px; }
+.debate .side.bull .role { color:var(--pos) }
+.debate .side.bear .role { color:var(--neg) }
+.debate .side .evidence { font-family:var(--f-body); font-size:13.5px; line-height:1.5; color:var(--ink) }
+.judge-line, .kronos-line, .rationale, .token-line {
+  padding:10px 14px; border:1px dashed var(--rule); border-radius:4px;
+  font-size:13px; line-height:1.5;
 }
-table.data {
-  width: 100%; min-width: 0;
-  border-collapse: collapse;
-  font-family: var(--f-mono);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
+.kronos-line { background:var(--kronos-tint); border-style:solid; border-color:var(--accent); }
+.judge-line, .kronos-line, .rationale, .token-line { }
+.judge-line strong, .kronos-line strong, .rationale strong, .token-line strong {
+  font-family:var(--f-mono); font-size:10px; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--ink-mute); font-weight:600;
+  display:block; margin-bottom:4px;
 }
-table.data thead th {
-  text-align: left;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--rule);
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-mute);
-  background: var(--card);
-}
-table.data tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--rule);
-  color: var(--ink);
-}
-table.data tbody tr:last-child td { border-bottom: none; }
-table.data td.num { text-align: right; }
-table.data td.pos { color: var(--pos); font-weight: 500; }
-table.data td.neg { color: var(--neg); font-weight: 500; }
-table.data td.neu { color: var(--ink-mute); }
-table.data td.agent { font-family: var(--f-body); font-weight: 500; }
+.token-line { background:var(--paper); font-family:var(--f-mono); font-size:12px; }
 
-.callout {
-  padding: 26px 26px 22px;
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--accent);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-}
-.callout .kicker {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  margin-bottom: 6px;
-}
-.callout h2 { margin-bottom: 12px; }
+.equity { background:var(--card); border:1px solid var(--rule); border-radius:4px;
+           padding:18px; box-shadow:var(--shadow); }
+.equity img { width:100%; height:auto; display:block; border-radius:3px; }
+.equity .cap { font-family:var(--f-mono); font-size:12px; color:var(--ink-mute);
+                margin-top:10px; text-align:center; }
 
-.gap-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  margin-top: 20px;
-  overflow: hidden;
-}
-@media (max-width: 640px) { .gap-grid { grid-template-columns: 1fr; } }
-.gap-card {
-  padding: 22px;
-  background: var(--card);
-  display: flex; flex-direction: column; gap: 10px;
-}
-.gap-card .ticker {
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-variation-settings: "opsz" 48;
-  font-size: 22px;
-  letter-spacing: -0.01em;
-}
-.gap-card .subtitle {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-}
-.gap-card .conf-row {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 14px; margin-top: 6px;
-}
-.gap-card .conf { display: flex; flex-direction: column; gap: 2px; }
-.gap-card .conf .n {
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-variation-settings: "opsz" 96;
-  font-size: 30px; line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.gap-card .conf.bull .n { color: var(--pos); }
-.gap-card .conf.bear .n { color: var(--neg); }
-.gap-card .conf .l {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-mute);
-}
-.gap-card .absgap {
-  font-family: var(--f-mono);
-  font-size: 13px;
-  padding: 8px 12px;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.gap-card .verdict {
-  font-family: var(--f-body);
-  font-size: 14px;
-  color: var(--ink);
-  line-height: 1.45;
-}
+.caveats { padding:18px 22px; border:1px solid var(--rule); border-radius:4px;
+            background:var(--card); box-shadow:var(--shadow); }
+.caveats ul { padding-left:20px; margin:8px 0 0 }
+.caveats li { margin-bottom:8px }
+.caveats li:last-child { margin-bottom:0 }
 
-.decisions { display: flex; flex-direction: column; gap: 22px; }
-.decision {
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-.decision > .head {
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: 10px;
-  padding: 16px 22px;
-  border-bottom: 1px solid var(--rule);
-  background: var(--card);
-}
-.decision .date {
-  font-family: var(--f-mono);
-  font-size: 13px;
-  color: var(--ink-mute);
-  letter-spacing: 0.02em;
-}
-.decision .action-pill {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 600;
-}
-.action-pill.buy { background: var(--bull-tint); color: var(--pos); }
-.action-pill.sell { background: var(--bear-tint); color: var(--neg); }
-.action-pill.hold { background: var(--neu-tint); color: var(--neu); }
+footer { margin-top:32px; padding-top:24px; border-top:1px solid var(--rule);
+          font-family:var(--f-mono); font-size:12px; color:var(--ink-mute);
+          display:flex; flex-direction:column; gap:6px; }
+footer .row { display:flex; flex-wrap:wrap; gap:8px 20px }
+footer .row .k { color:var(--ink) }
 
-.decision .body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 20px; }
-
-.signal-row { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 560px) { .signal-row { grid-template-columns: 1fr; } }
-.signal {
-  padding: 12px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.signal .name {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-}
-.signal .val { font-family: var(--f-body); font-weight: 600; font-size: 15px; }
-.signal .conf { font-family: var(--f-mono); font-size: 12px; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
-.signal .val.bullish { color: var(--pos); }
-.signal .val.bearish { color: var(--neg); }
-.signal .val.neutral { color: var(--ink-mute); }
-
-.debate {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  overflow: hidden;
-}
-@media (max-width: 640px) { .debate { grid-template-columns: 1fr; } }
-.debate .side { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
-.debate .side.bull { background: var(--bull-tint); }
-.debate .side.bear { background: var(--bear-tint); }
-.debate .side .role {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  display: flex; justify-content: space-between; gap: 8px;
-}
-.debate .side.bull .role { color: var(--pos); }
-.debate .side.bear .role { color: var(--neg); }
-.debate .side .evidence { font-family: var(--f-body); font-size: 13.5px; line-height: 1.5; color: var(--ink); }
-
-.risk-line, .rationale {
-  padding: 12px 14px;
-  border: 1px dashed var(--rule);
-  border-radius: 4px;
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-.risk-line strong, .rationale strong {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-  font-weight: 600;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.arch {
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 22px;
-  box-shadow: var(--shadow);
-  overflow-x: auto;
-}
-.arch svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
-
-.model-grid {
-  display: grid; gap: 8px;
-  grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--card);
-  padding: 4px;
-}
-@media (max-width: 560px) { .model-grid { grid-template-columns: 1fr; } }
-.model-row {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; padding: 10px 14px;
-}
-.model-row .role { font-family: var(--f-body); font-size: 14px; font-weight: 500; }
-.model-row .model { font-family: var(--f-mono); font-size: 12px; color: var(--ink-mute); }
-
-.caveats {
-  padding: 18px 22px;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--card);
-  box-shadow: var(--shadow);
-}
-.caveats ul { padding-left: 20px; margin: 8px 0 0; }
-.caveats li { margin-bottom: 8px; }
-.caveats li:last-child { margin-bottom: 0; }
-
-footer {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--rule);
-  font-family: var(--f-mono);
-  font-size: 12px;
-  color: var(--ink-mute);
-  display: flex; flex-direction: column; gap: 6px;
-}
-footer .row { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-footer .row .k { color: var(--ink); }
+.econ-grid { display:grid; gap:1px; grid-template-columns:repeat(4,1fr);
+              background:var(--rule); border:1px solid var(--rule); border-radius:4px;
+              overflow:hidden; box-shadow:var(--shadow); }
+.econ-grid .cell { background:var(--card); padding:20px 18px; display:flex; flex-direction:column; gap:4px }
+.econ-grid .cell .label { font-family:var(--f-mono); font-size:11px; text-transform:uppercase;
+                           letter-spacing:0.1em; color:var(--ink-mute); }
+.econ-grid .cell .figure { font-family:var(--f-display); font-weight:500;
+                            font-size:30px; line-height:1; font-variant-numeric:tabular-nums; }
+.econ-grid .cell .caption { font-family:var(--f-mono); font-size:12px; color:var(--ink-mute); margin-top:3px }
+@media (max-width:760px) { .econ-grid { grid-template-columns:repeat(2,1fr) } }
 </style>
 </head>
 <body>
@@ -468,146 +208,154 @@ footer .row .k { color: var(--ink); }
 
 <header>
   <div class="eyebrow">Fuse-AI Fellowship &middot; Multi-Agent Trading Research Desk</div>
-  <h1>Argos NASDAQ pilot: NVDA, TSLA, ORCL &mdash; 2024 weekly backtest</h1>
-  <p class="lede">A LangGraph pipeline of eight specialised LLM agents (three parallel analysts, a symmetric Bull/Bear debate, a blind judge, a risk manager with veto authority, and a portfolio manager) produces one directional decision per (ticker, week) across all of 2024. This report is written from the actual journal on disk.</p>
-  <div class="status-strip" role="status" aria-live="polite">
-    <span class="dot" aria-hidden="true"></span>
-    <span><span class="key">run</span> <span class="val">RUNNING</span></span>
-    <span><span class="key">NVDA</span> <span class="val">53 / 53 weekly</span></span>
-    <span><span class="key">TSLA</span> <span class="val">49 / 53 weekly (in progress)</span></span>
-    <span><span class="key">ORCL</span> <span class="val">queued</span></span>
-    <span><span class="key">snapshot</span> <span class="val">2026-09-29 17:16 UTC</span></span>
+  <h1>Argos NASDAQ 2024 &mdash; four tickers, Kronos on, token-tracked</h1>
+  <p class="lede">A LangGraph pipeline of eight LLM agents (three parallel analysts, a symmetric Bull/Bear debate on gpt-4o, a blind judge, a risk manager with veto authority, and a portfolio manager) produces one directional decision per (ticker, week) across all of 2024. 212 decisions, Kronos time-series forecasts on every call, token usage captured per agent, $1,000 paper book per name.</p>
+  <div class="status-strip">
+    <span class="dot"></span>
+    <span><span class="key">status</span> <span class="val">COMPLETE</span></span>
+    <span><span class="key">decisions</span> <span class="val">212 / 212</span></span>
+    <span><span class="key">errors</span> <span class="val">0</span></span>
+    <span><span class="key">kronos</span> <span class="val">on, 1,461 agent calls</span></span>
+    <span><span class="key">total tokens</span> <span class="val">5,601,846</span></span>
   </div>
 </header>
 
 <section>
   <header>
-    <h3>The one finding &mdash; symmetric debate under stress</h3>
-    <h2>Bear beats Bull on TSLA at 55%, and the Bull&ndash;Bear confidence gap collapses to zero.</h2>
+    <h3>The one finding &mdash; symmetric debate across four markets</h3>
+    <h2>Bull&ndash;Bear confidence gap tracks the market, not the models. Range: 0.260 to 0.009.</h2>
   </header>
-  <p class="prose">The previous NEPSE run showed Bear systematically 0.30+ confidence points hotter than Bull on 43 of 44 dates. That gap turned out to be a <em>provider prior</em> (Bear was on Nemotron-550B, Bull on gpt-oss-20B). The router was rewritten so that both advocates share <code>gpt-4o</code> at the same temperature with the same fallback chain; a symmetry test in <code>tests/test_openai_router.py</code> asserts this at import.</p>
-  <p class="prose">Under the new symmetric router, the confidence gap only appears when the evidence really is one-sided &mdash; and it disappears when the evidence is contested. NVDA (up ~171% in 2024) and TSLA (down ~35% mid-year with a late rally) prove both directions cleanly.</p>
+  <p class="prose">The earlier NEPSE run showed Bear systematically 0.30+ points hotter than Bull on 43 of 44 dates &mdash; a provider prior. The router was rewritten so both advocates share <code>gpt-4o</code> at the same temperature with the same fallback chain; <code>tests/test_openai_router.py</code> asserts this invariant at import. Across four 2024 markets with the same router, the confidence gap now scales smoothly with evidence one-sidedness.</p>
   <div class="gap-grid">
     <div class="gap-card">
-      <div class="ticker">NVDA <span class="subtitle" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-mute);letter-spacing:0.1em;margin-left:8px;">clear bull year</span></div>
+      <div class="ticker">NVDA<span class="sub">clear bull year</span></div>
       <div class="conf-row">
-        <div class="conf bull"><span class="n">0.715</span><span class="l">Bull mean confidence</span></div>
-        <div class="conf bear"><span class="n">0.390</span><span class="l">Bear mean confidence</span></div>
+        <div class="conf bull"><span class="n">0.679</span><span class="l">Bull</span></div>
+        <div class="conf bear"><span class="n">0.419</span><span class="l">Bear</span></div>
       </div>
-      <div class="absgap"><strong>Abs gap: 0.325</strong> &middot; n = 97 debate pairs</div>
-      <div class="verdict">Bull directional accuracy at h=5 days: <strong style="color:var(--pos)">75.8%</strong> &middot; Bear: <strong style="color:var(--neg)">24.2%</strong>. The gap measures a real one-sided market, not a model bias.</div>
+      <div class="absgap"><strong>Abs gap: 0.260</strong> &middot; n = 53</div>
+      <div class="verdict">Bull h=5: <strong style="color:var(--pos)">62.3%</strong>, Bear: <strong style="color:var(--neg)">37.7%</strong></div>
     </div>
     <div class="gap-card">
-      <div class="ticker">TSLA <span class="subtitle" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-mute);letter-spacing:0.1em;margin-left:8px;">contested year</span></div>
+      <div class="ticker">TSLA<span class="sub">bearish year</span></div>
       <div class="conf-row">
-        <div class="conf bull"><span class="n">0.494</span><span class="l">Bull mean confidence</span></div>
-        <div class="conf bear"><span class="n">0.494</span><span class="l">Bear mean confidence</span></div>
+        <div class="conf bull"><span class="n">0.452</span><span class="l">Bull</span></div>
+        <div class="conf bear"><span class="n">0.562</span><span class="l">Bear</span></div>
       </div>
-      <div class="absgap"><strong>Abs gap: 0.000</strong> &middot; n = 49 debate pairs</div>
-      <div class="verdict">Bull h=5 accuracy: <strong>44.9%</strong> &middot; Bear h=5: <strong style="color:var(--pos)">55.1%</strong>. Same router, same model, opposite outcome &mdash; the debate is genuinely evidence-driven.</div>
+      <div class="absgap"><strong>Abs gap: 0.110</strong> &middot; n = 53</div>
+      <div class="verdict">Bull h=5: <strong>43.4%</strong>, Bear: <strong style="color:var(--pos)">56.6%</strong> &mdash; Bear wins</div>
+    </div>
+    <div class="gap-card">
+      <div class="ticker">ORCL<span class="sub">mixed year</span></div>
+      <div class="conf-row">
+        <div class="conf bull"><span class="n">0.475</span><span class="l">Bull</span></div>
+        <div class="conf bear"><span class="n">0.528</span><span class="l">Bear</span></div>
+      </div>
+      <div class="absgap"><strong>Abs gap: 0.054</strong> &middot; n = 53</div>
+      <div class="verdict">Bull h=5: <strong>50.9%</strong>, Bear: <strong>49.1%</strong></div>
+    </div>
+    <div class="gap-card">
+      <div class="ticker">KO<span class="sub">legacy control &middot; +5% / yr</span></div>
+      <div class="conf-row">
+        <div class="conf bull"><span class="n">0.480</span><span class="l">Bull</span></div>
+        <div class="conf bear"><span class="n">0.488</span><span class="l">Bear</span></div>
+      </div>
+      <div class="absgap"><strong>Abs gap: 0.009</strong> &middot; n = 52</div>
+      <div class="verdict">Bull h=5: <strong>50.0%</strong>, Bear: <strong>50.0%</strong> &mdash; perfectly flat</div>
     </div>
   </div>
+  <p class="prose" style="margin-top:18px;">The gap collapses to <strong>0.009</strong> on KO (the sleepy legacy control) and widens to <strong>0.260</strong> on NVDA's AI-rally year. On the same symmetric router. The confidence gap is now a market indicator, not a model artifact.</p>
 </section>
 
 <section>
   <header>
-    <h3>Headline &mdash; final decision, directional accuracy</h3>
-    <h2>NVDA final decision hits 75% at the one-week horizon on 84 directional calls.</h2>
+    <h3>Final-decision directional accuracy at h = 5 days</h3>
+    <h2>NVDA 82%, KO 82% &mdash; both the AI darling and the sleepy legacy name read right.</h2>
   </header>
-  <div class="hero-metrics" role="table" aria-label="Directional accuracy of the final decision at 1, 5 and 20 trading-day horizons on NVDA">
-    <div class="cell" role="cell">
-      <span class="label">NVDA final &middot; h = 1 day</span>
-      <span class="figure pos">67.9<span style="font-size:0.6em">%</span></span>
-      <span class="caption">57 correct / 84 directional</span>
+  <div class="hero-metrics">
+    <div class="cell">
+      <span class="label">NVDA h=5</span>
+      <span class="figure pos">82.4%</span>
+      <span class="caption">14/17 directional</span>
     </div>
-    <div class="cell" role="cell">
-      <span class="label">NVDA final &middot; h = 5 days</span>
-      <span class="figure pos">75.0<span style="font-size:0.6em">%</span></span>
-      <span class="caption">63 correct / 84 directional</span>
+    <div class="cell">
+      <span class="label">TSLA h=5</span>
+      <span class="figure neu">&mdash;</span>
+      <span class="caption">0/0 directional</span>
     </div>
-    <div class="cell" role="cell">
-      <span class="label">NVDA final &middot; h = 20 days</span>
-      <span class="figure pos">89.3<span style="font-size:0.6em">%</span></span>
-      <span class="caption">75 correct / 84 directional</span>
+    <div class="cell">
+      <span class="label">ORCL h=5</span>
+      <span class="figure neu">50.0%</span>
+      <span class="caption">3/6 directional</span>
+    </div>
+    <div class="cell">
+      <span class="label">KO h=5</span>
+      <span class="figure pos">81.8%</span>
+      <span class="caption">9/11 directional</span>
     </div>
   </div>
-  <p style="margin-top:16px; color: var(--ink-mute); font-size: 14px;">Coverage 86.6% &mdash; 84 of 97 recorded NVDA decisions were directional (BUY or SELL); the other 13 were HOLD and are excluded from directional accuracy by design. Accuracy strictly monotonic in horizon: the pipeline is picking up longer-cycle signals better than day-of noise, exactly what you'd want from a weekly-cadence research desk.</p>
+  <p style="margin-top:16px; color:var(--ink-mute); font-size:14px;">Coverage is low on TSLA (only 0&ndash;6 directional calls) because the Portfolio Manager held through TSLA's chop. Being right on a few confident calls beats being wrong on many loose ones &mdash; the HOLD rate is a feature.</p>
 </section>
 
 <section>
   <header>
-    <h3>Per-agent accuracy at the five-day horizon</h3>
-    <h2>NVDA: fundamentals and sentiment carry the signal; TSLA: Bear beats Bull, technicals still coin-flip.</h2>
+    <h3>Risk-adjusted returns &mdash; paper P&amp;L on $1,000 per ticker</h3>
+    <h2>NVDA Sharpe 1.44, Sortino 2.16. KO Sharpe 0.68, modest but positive.</h2>
   </header>
   <div class="datatable-wrap">
     <table class="data">
       <thead>
         <tr>
-          <th>Agent</th>
-          <th class="num">NVDA acc</th>
-          <th class="num">NVDA n_dir</th>
-          <th class="num">TSLA acc</th>
-          <th class="num">TSLA n_dir</th>
-          <th>Read</th>
+          <th>Ticker</th>
+          <th class="num">Sharpe (ann)</th>
+          <th class="num">Sortino</th>
+          <th class="num">Max DD</th>
+          <th class="num">Calmar</th>
+          <th class="num">Return</th>
+          <th class="num">P&amp;L</th>
         </tr>
       </thead>
       <tbody>
+        <tr><td class="agent">NVDA</td><td class="num">1.44</td><td class="num">2.16</td><td class="num">-0.7%</td><td class="num">2.49</td><td class="num">+1.84%</td><td class="num">$+18.38</td></tr>
+        <tr><td class="agent">TSLA</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">0.0%</td><td class="num">&mdash;</td><td class="num">+0.00%</td><td class="num">$+0.00</td></tr>
+        <tr><td class="agent">ORCL</td><td class="num">1.10</td><td class="num">2.76</td><td class="num">-0.0%</td><td class="num">1.72</td><td class="num">+0.02%</td><td class="num">$+0.23</td></tr>
+        <tr><td class="agent">KO</td><td class="num">0.68</td><td class="num">0.77</td><td class="num">-0.3%</td><td class="num">0.76</td><td class="num">+0.23%</td><td class="num">$+2.28</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:14px;">TSLA has 0 trades because its 4 directional calls all got risk-managed to zero size &mdash; the simulator correctly stayed flat through a losing year. The pipeline avoided the bear trap entirely, which is itself a result; Sharpe is undefined without a return series.</p>
+</section>
+
+<section>
+  <header>
+    <h3>Per-agent directional accuracy at h = 5</h3>
+    <h2>Judge is now populated. Fundamentals most reliable overall; Technicals coin-flip across the board.</h2>
+  </header>
+  <div class="datatable-wrap">
+    <table class="data">
+      <thead>
         <tr>
-          <td class="agent">Final decision</td>
-          <td class="num pos">75.0%</td>
-          <td class="num">84</td>
-          <td class="num neg">0.0%</td>
-          <td class="num">4</td>
-          <td class="neu">Portfolio Manager mostly held on TSLA &mdash; only 4 directional calls so far.</td>
+          <th rowspan="2">Agent</th>
+          <th class="grp" colspan="2">NVDA</th>
+          <th class="grp" colspan="2">TSLA</th>
+          <th class="grp" colspan="2">ORCL</th>
+          <th class="grp" colspan="2">KO</th>
         </tr>
         <tr>
-          <td class="agent">Fundamentals</td>
-          <td class="num pos">75.8%</td>
-          <td class="num">95</td>
-          <td class="num neg">0.0%</td>
-          <td class="num">4</td>
-          <td class="neu">Very high coverage on NVDA; TSLA fundamentals kept going neutral (P/E, guidance caution).</td>
+          <th class="num">acc</th><th class="num">n</th>
+          <th class="num">acc</th><th class="num">n</th>
+          <th class="num">acc</th><th class="num">n</th>
+          <th class="num">acc</th><th class="num">n</th>
         </tr>
-        <tr>
-          <td class="agent">Sentiment</td>
-          <td class="num pos">75.3%</td>
-          <td class="num">73</td>
-          <td class="num neg">42.9%</td>
-          <td class="num">7</td>
-          <td class="neu">Sentiment deferred to neutral on TSLA more often than it committed.</td>
-        </tr>
-        <tr>
-          <td class="agent">Technicals</td>
-          <td class="num neg">44.3%</td>
-          <td class="num">70</td>
-          <td class="num neg">43.3%</td>
-          <td class="num">30</td>
-          <td class="neu">Coin-flip on both. RSI/MACD/OBV overbought on NVDA never resolved into a mean-revert.</td>
-        </tr>
-        <tr>
-          <td class="agent">Bull Advocate</td>
-          <td class="num pos">75.8%</td>
-          <td class="num">95</td>
-          <td class="num neg">44.9%</td>
-          <td class="num">49</td>
-          <td class="neu">Every debate produces a Bull call by construction; measured on outcome.</td>
-        </tr>
-        <tr>
-          <td class="agent">Bear Advocate</td>
-          <td class="num neg">24.2%</td>
-          <td class="num">95</td>
-          <td class="num pos">55.1%</td>
-          <td class="num">49</td>
-          <td class="neu">Mirror of Bull &mdash; on a mixed tape like TSLA the Bear side actually leads.</td>
-        </tr>
-        <tr>
-          <td class="agent">Blind Judge</td>
-          <td class="num neu">not persisted</td>
-          <td class="num">0</td>
-          <td class="num neu">not persisted</td>
-          <td class="num">0</td>
-          <td class="neu">Bug: <code>journal.py</code> was omitting <code>judge_verdict</code> from the record. Fixed for ORCL and any re-runs.</td>
-        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="agent">Final decision</td><td class="num pos">82.4%</td><td class="num">17</td><td class="num neu">&mdash;</td><td class="num">0</td><td class="num neu">50.0%</td><td class="num">6</td><td class="num pos">81.8%</td><td class="num">11</td></tr>
+        <tr><td class="agent">Fundamentals</td><td class="num pos">62.3%</td><td class="num">53</td><td class="num neg">0.0%</td><td class="num">4</td><td class="num pos">87.5%</td><td class="num">8</td><td class="num pos">100.0%</td><td class="num">1</td></tr>
+        <tr><td class="agent">Sentiment</td><td class="num pos">63.6%</td><td class="num">44</td><td class="num neu">50.0%</td><td class="num">8</td><td class="num pos">100.0%</td><td class="num">2</td><td class="num neu">&mdash;</td><td class="num">0</td></tr>
+        <tr><td class="agent">Technicals</td><td class="num neg">45.2%</td><td class="num">42</td><td class="num neg">46.5%</td><td class="num">43</td><td class="num neg">48.9%</td><td class="num">47</td><td class="num neu">53.7%</td><td class="num">41</td></tr>
+        <tr><td class="agent">Bull Advocate</td><td class="num pos">62.3%</td><td class="num">53</td><td class="num neg">43.4%</td><td class="num">53</td><td class="num neu">50.9%</td><td class="num">53</td><td class="num neu">50.0%</td><td class="num">52</td></tr>
+        <tr><td class="agent">Bear Advocate</td><td class="num neg">37.7%</td><td class="num">53</td><td class="num neu">56.6%</td><td class="num">53</td><td class="num neg">49.1%</td><td class="num">53</td><td class="num neu">50.0%</td><td class="num">52</td></tr>
+        <tr><td class="agent">Blind Judge</td><td class="num pos">62.3%</td><td class="num">53</td><td class="num neg">49.1%</td><td class="num">53</td><td class="num neu">56.6%</td><td class="num">53</td><td class="num pos">61.5%</td><td class="num">52</td></tr>
       </tbody>
     </table>
   </div>
@@ -615,229 +363,219 @@ footer .row .k { color: var(--ink); }
 
 <section>
   <header>
-    <h3>Sample decisions &mdash; full debate transcripts</h3>
-    <h2>Four days across two tickers, quoted verbatim from <code>logs/decisions/nasdaq_focus/</code>.</h2>
+    <h3>Equity curves &mdash; paper simulator, $1,000 per ticker book</h3>
+  </header>
+  <div class="equity">
+    <img alt="Paper NAV per ticker across 2024" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAALQCAYAAACABYmvAAAAOnRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjExLjIsIGh0dHBzOi8vbWF0cGxvdGxpYi5vcmcvgI3uAAAAAAlwSFlzAAASdAAAEnQB3mYfeAAAeCdJREFUeJzt3QeYXFX5P/Cz6QUSOoQuXUNHUATpUkWaCNIRkSoKij9AUPhbEUSKoBQFAQVFFGnSpIMUAWmh19AC0gPpO//nPbt3Mrs7m+wmm+zN7ufzPJOZuffMzJ2ZO5O933nPOQ2VSqWSAAAAAKCk+nT3BgAAAADAtAiwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAA6LW++93vpk9/+tNp7bXXTs8991zdNieddFJuc8MNN7R7P++8805aZ511crs//elP033caH/KKaekHXbYIX3uc59L22yzTTr44IPT5ZdfnsaPH9/udhanz372s2nzzTdPe+yxR76fJ598skPP989//nP1+b711lsdus2zzz6b/t//+39p2223Teutt17e1mOOOSY9+uijaUZMmjQp/frXv0477rhj+sxnPpO35/3335+h+4Krr766+rn4/e9/X7fNfffdl9d///vfn+Z97bfffrndN77xjTbrbrnllrwuPqfTc8cdd+S2Bx10UOrJDjnkkPw8x44dO8P3sfvuu+f7AIAOqQBAL7XddttV4r/COO2555512xxyyCF5/SWXXNLu/fz617+u3s+66647zce87777KgsttFC1fevT3HPPXfn444/b3c72TltvvXXllVdemeZjr7/++tX2p5122jTbNjY2Vo477rhKv3796j5enz598mszadKkSmfsv//+be7rrbfe6tR9QOH888+v7keLLLJI5aOPPmrT5sYbb8zrd9lll3bv5+WXX877dLTr27dv5bXXXmuxPu43PpvxeRgzZsw0tym+S+J+fvOb31TmZPvtt19lrbXWqkyYMKHu+k033TQ/z3fffXeGH2O11VbL9wEAHaECC4Beb+DAgemPf/xjeuKJJ2bo9n/4wx/y+UorrZT+/e9/p6effrrd6qOdd945vfnmm+lTn/pUOuuss9K//vWvXN119tlnp6985Stp8uTJacqUKXVvf/rpp6f7778/V5TE7c4///xchRXbf+211+bKrDfeeKPubaPC7M4770wrrLBC6tOnT3Wb23PkkUemH/3oR3lbYrsuu+yydNddd6W///3vae+9985tzjzzzPS1r32tw6/TxIkTc5XMggsumKvN4nnE85lnnnk6fB9QT3wGYt+P6r4ZcdFFF6XGxsb8GY59/uKLL26xfsiQIenLX/5y/nxecskl7d7PRx99lP72t7/l7dlll13SnCwqOx944IH8utQT31/x+Z177rln+7YB0DsJsADo9Q444IB8kHb88cd3+rYResVBXHSHO+yww/KyCy+8sG7be+65J7300ktpscUWS3fffXfuYrTJJpukL3zhC7nbUnTxi3ArDpbrWX755atdAON2++yzTz7w/u9//5uWXnrp9Morr6RvfetbdW9bbFM85vrrr58efPDB9Nhjj9VtG0FXdE1saGjIwV5sVxy8R3fH7bffPl1wwQXpyiuvTP369cuPf8UVV3TotXr55ZdzOBDbHl0I43nE84n7gZkRXdHmmmuu9Itf/CJ9+OGHnb59fD4i2I3z2O/rBbxFcNve5ztEMBsh1pe+9KU077zzpp4swvD4/Pbt27e7NwWAXkKABUCvt+uuu6ZVVlklVxk98sgjnbptcaAb97HTTjvlg7kIdSqV6BnT0rvvvpvP46Bv+PDhde8vDsLjQLozomqkGHvrr3/9a3r99ddbrI9tiW2KA/OopopT7ba39stf/jLfZv/9909f/epX67aJsbAOP/zwavvpifYRfoUbb7yxOm7Rz372sxbbGRVeEUZEyBbB3tFHH52Dr/ZEhci3v/3ttOmmm6aNNtooh5ExBlGtH/zgB/mxIjxsLSrmYt1vfvObuuMexbhIm222Wd6WAw88MFe+lUlUHMX2x/OIMDUCyg022CBtvfXWuUIuqv7qef7559MJJ5yQg8kY22y77bZLp556at3xjGb0MUKEu9/85jdzaPn5z38+h671xpOrfYxnnnkmB7Ebb7xxDoI6Iqr6IkB+++238/PojAiWn3rqqbx9EarG6/H444/nfatWPOdPfOITOfwdNWpU3fuKz1lt2NWZMaCiijKqtmLfj++T6667rt3bReAe31dRgRnbHa/vd77znfzaTesxbrrppnybeI61n71a8RpG+4cffjhfj7bF5zXGverIGFixfVGJFq9Dsa8cddRRdT+D9bzwwgv5Mx2PHQF9d+xTAJRQhzoaAkAPVIwt9e9//7vyt7/9LV/+0pe+1OExsKZMmVJZbLHFKg0NDdXxp4pxYf71r3+1af/EE0/kdSNGjOjUuE/Fdv7zn/+cZrvVV189t7v00ktbLL/11lvz8g022CBff+ONN/I4P7EdkydPbtE2rs8111y5/SOPPDLNx4txg4oxgz744INpto3Xqd5YWgcccED1cXfaaae6bYYOHVq5/vrr29zn0Ucf3e6YYBdeeGG13e67756XxevfWrymse773/9+i+WHH354u/f9s5/9rFIW//d//5e36Qc/+EFlyJAhbbZ1o402qowfP77Fba6++uq8z9Z7biuttFLlf//730w/RjjmmGPafQ0PO+ywuo/xwx/+sLr/xWmppZbq0BhYcft33nmnMnz48HyKyx0dA+vAAw/M688666x8/YwzzsjXv/nNb7ZpG69B8XitxXdAjKO18MILd3hsuGIMqJ///Od1X6fjjz++zW3ef//9ysYbb1y3/aBBg/J3Wb3HOOmkk+p+9lp7/fXX233f4vttemNgvffee3mfqHf7/v37V1599dU221brgQceyK9hvI8333zzbN+nACgvFVgAkFKeEXCttdbKXePiF/6OiGqGV199NVdMRLfAUIx7U6+6KSqlYja/qJD65Cc/mSt6ojtezOjX3jgznVFUWbSeUbHYlmLbFl544bThhhvm7WhduRAVElFREZVgK6+88jQfb4kllkgjRozI3QLrVX7UiuqSSy+9NF/eaqut8mscp5jRsJjtMbpfDR48OFcGxWsbXRejqiq6ZMW2186c+Lvf/S5XkES1WozDFdUot956azrnnHNyVUbcZkb973//S6eddloexyi2Jaquohrr3HPPzZVYM3Pfs8pPfvKT3MU0KoBuvvnm3JUuxiaK1yTW1YoudjEGW7zmV111Va5Yi25xUe0S4x4de+yxM/0Y0eanP/1prliKCr2ouot28bouvvjieTy3qLZr7cc//nH+nMQYVFE5E9vXUdFlL6qQYlbLjlQFhgkTJuT9LCono4IyRFVa7Fcx1lXr6rK99torn0fX2taf2djmWBYVT53tFhszJEbV1T/+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BQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAotX6pB/voo4/S7bffnkaPHp2GDRuWVltttfTJT36ybtvGxsZ05513plGjRqXhw4enzTbbLC244IIz3RYAAACAmdNjK7D+/Oc/p6WWWip95zvfSf/5z3/SpZdemgOsHXfcMX388cct2r777rvp85//fNpll13Sgw8+mM4///y09NJL5/torTNtAQAAAJh5PbICK0KmffbZJ6299trp1ltvTX36NOV0//jHP9L222+ffvnLX6bjjjuu2v4b3/hGeuaZZ9IjjzySFllkkbzse9/7Xtprr73SmmuumZZffvkZagsAAADAzOuRFVjPP/98Gj9+fNpiiy2q4VXYeuutU0NDQ3riiSeqy6J74eWXX56+/vWvVwOpcPTRR+eugmecccYMtQUAAACga/TIAGullVZK888/f7r33ntbLL/nnntSpVJJ6623XnVZVGjFsvXXX79F23nnnTeNHDky3XLLLTPUFgAAAICu0SO7EA4dOjRdddVV6aCDDspVWBtuuGF66623cvVUdPc78MADq21feOGFfL744ou3uZ8lllgi3XzzzTPUtp4333wzb0etZ599dgaeIQAAAEDv0SMDrBCVUoMHD04vv/xy7lIYwdHEiRNTv3798rpCzFQYom1rsSwGfI/20fWwM23rOeuss9IJJ5zQhc8SAAAAoOfrkQHWSy+9lDbbbLP0hS98Id1xxx05tApxeeONN85B1kknndQijJowYUKb+4llgwYNqgZSnWlbz8EHH5x23nnnNhVYMbA8AAAAAL1oDKy///3vady4cemwww6rhlfh85//fJ6Z8OKLL27R9S+89tprbe4nli255JIz1LaehRZaKI+VVXtabrnlZvBZAgAAAPQOPTLAivAq9O/fv826WBYzFBaKAdnvu+++Fu2iu+Cjjz7aYsD2zrQFAAAAoGv0yABrk002yee1lVbhySefzOFTdCMsrLjiimmjjTZK5513Xho7dmx1+W9+85vc1bB2wPfOtAUAAACga/TIMbA+85nPpB/84Afppz/9aXrxxRersxBecMEFaYUVVkinnnpqi/bnn39+Dr3WXXfd9NWvfjXfJtr+/Oc/z10OZ7QtAAAAADOvoVI7JV8PE7MP3nDDDXkmwuHDh+cxp7beeuvUp0/bwrPoBnjZZZflKq1hw4alL37xi2nVVVete7+daTs9jz/+eFp55ZXTY489lrcPAAAAoCd4vAszjx4dYM0JBFgAAABAT/R4F2YePXIMLAAAAAB6DgEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBS69fdGwAAAAAwefLk9O6776axY8emSqXS3ZtDOxoaGtLAgQPTsGHD0tChQ/P12aHHB1j/+9//0nXXXZdeffXVtOyyy6ZtttkmDR48uE27SZMmpX/+859p1KhRafjw4WmrrbZKSy+9dN377ExbAAAAYNoisHrllVfSuHHjUt++fVO/fj0+rphjTZkyJb3//vv5NN9886WFFlpotoRYPXqPOPvss9ORRx6ZNtxww7TKKqukq6++Oh177LHpyiuvTCussEK13ZgxY9IXvvCFnPJ++ctfTg8++GD69re/nc4888z09a9/vcV9dqYtAAAAMH0ffvhhDq+iSGTEiBGzraqHGTNx4sT0+uuvp3feeSdXYc0111xpVuuxAdZf/vKXdPDBB6errroqbb311tXlUYnVuhRxv/32S2+//XZ67LHH0rzzzpuXnXDCCenAAw9Mn/3sZ9PKK688Q20BAACA6fvggw/y+eyq5mHmDBgwIAeNzz33XH7vZkeA1aen9pv9zne+k3bdddcW4VVYbLHF0uKLL169/vzzz6drrrkmV08VgVQ4/PDDU58+fXJl1Yy0BQAAADomhuqJboO6Ds5ZIVb//v3ThAkTZsvj9cg949///nfuO/vFL34xd/G77bbb8odh9dVXz93/atPc22+/PZ+vu+66Le4jBiOLaqq47Yy0BQAAADomekpFYQhzloaGhtk24H6P3DseffTRfH7WWWelLbbYIj399NPpqaeeSjvssENab7310nvvvVdt+9JLL1Urs1qLSq0XX3xxhtrW8+abb6bHH3+8xenZZ5+diWcKAAAAPYOug3Oehtn4nvXryX1nH3rooTxWVTFDYHT9iwAruvydf/75ednHH3+cz2MKyNYGDRqUB5GLNDHelM60rScCtRgvCwAAAIBeXoE1ZMiQfB6zBBbhVdH1b/31109//etfU2NjY4u29fpsjh8/Pg0ePLgaSHWmbT0xqHwEarWnK664YqafLwAAAEBP1iMDrCK0qh2svbDEEkuksWPH5lNYaqmlqrMTthbjaNUGYJ1pW0/MpjBy5MgWp+WWW67Tzw8AAACYM0QRzCKLLJJPv/71r9usv+WWW/K6f/zjH/n6JZdckq9H8U17XnrppTwL4JFHHtnmMeIUQx+ttNJKabPNNkvHHHNMHsJoWq699tp8u0996lN5Yrwy6pEBVlRZxUj4ESq1Nnr06DT33HPnU9hggw2qA7+37oYYFVLF+s62BQAAAIihhsaMGZNPP/zhD1uMy12ET7EuhiUKMSFdFN2cffbZ7d7n73//+/TGG2/ksb5rHyPykP/+97/pgQceSFdeeWX65je/mccEX2WVVdK3v/3tdgdc/+1vf5snv3viiSfSVVddlcqoRwZY8803X9pzzz3T5Zdfnl5++eXq8nvvvTfdeeedaffdd6929VtmmWXSVlttlc4777z07rvvVtv+6le/SlOmTMnd/gqdaQsAAABQ+NznPpfDq5/97GfTbBcFN1/5ylfSv/71r7qTxTU2NqYLLrggV0vFfbYen7uowlphhRXSdtttl7ORk08+OZ122ml1H/u1117LFVgRrq2xxho58yijHhlghVNPPTV9+tOfzqcIlmIA90033TSf4o2r9bvf/S7NO++8aa211krf+9738o7y05/+NA+6vuqqq85wWwAAAIAQVVB77bVXOv3001sU29Sz//7752qpYgK6WjfccEO+fbTpqCOOOCIHXieeeGKbcb3jMSL42nvvvdNBBx2Urrvuutx7rWx6bIAVieXNN9+c+45+4hOfyH0/I1G88cYb09ChQ1u0jX6jDz74YDrllFNy9dZGG22UnnzyyXTAAQe0ud/OtAUAAAAo/PjHP849wo499thptotJ6GLc7AiXiknoClEhNXDgwNzzrDOiR1kMgXT//fdXl0VIFoU6u+22Wxo+fHjusRZ5SnRRLJt+qQeLnaKoupqeAQMGpO23375D99uZtgAAAMCMO+Gqx9Oo1z5IZfCpRYelH247coZvH4Orx1hUUQkVVVGrr756u22jJ9nhhx+eK6623HLLvOytt97KY1vttNNOaf755+/UYy+55JL5vHa88Oim+MILL1SHRBoyZEiuxIoA67jjjkt9+pSn7qlHB1gAAADAnC3Cq3tfeCf1FEcddVSuoooZBKOXWHuiwiraRoXUls0B1oUXXpgHW+9M98FCv35NEVCM4V0499xzc7VXbZAWYVZ0c6wNzspAgAUAAACUVlQ99aRtGTZsWK5uOuyww9L111/fbruosIpZBv/2t7/lyqsFF1wwh1kxwdzGG2/c6ceNwdpDDPAe/ve//6UrrrgiB1vFstoebRFuCbAAAAAAOmBmuuyV1YEHHpirnGJyuGnNShiVVpdeemm66KKL0mc+85n0xBNP5InkImDqrFtuuSUPibTOOutUq7nmmWee9PDDD7dpe+edd+ZxscaMGZMWXnjhVAbl6cwIAAAA0Av0798/B1ePPPJIDpLaE5VWyy67bK68ilNUS+2zzz6dfrxrrrkm3X333XlcrRikPUQ3xi222CJXX7U+bbvttnkb//CHP6SyEGABAAAAzGZf/vKX02c/+9n0l7/8pd02UWm13377pVGjRuUqrG222SaNGDGiw4/x8ssv55kPY9D3mODu5JNPrlZYRTVXe10EY5bDCM8i5CoLARYAAABANzjppJNSpVKZZpt99903V15Nnjx5uoO3X3755dUqqqFDh6Y111wzV16df/75ecD4wYMH53YRTMUMg5tvvnm797XVVlulZ555Jt12222pDIyBBQAAADCLDBo0KL3++utpyJAhbdatv/76eZypxsbGPB5VPRFGvf766znAam88quIxCn379k1zzTVXNbBqLSqxfvGLX6QFFlig3e2OsCwqt4ouh91NgAUAAAAwC7We5a/WQgstNN3bLzCNoKkjjzEj9xcDvnfmPmc1XQgBAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDU+nX3BgAAAAD0RKeddlp65plnpttupZVWSoceemi+HO1vuOGG9PLLL6d55pknjRw5Mm255ZZpwIAB1faTJ09O3/72t9M666yT9tprrw5ty1/+8pd0++23p0033TTtsMMOaU6jAgsAAABgFlhyySVzOFWcPvzww3TmmWem8ePHt1i+xBJL5PaHHXZY+tSnPpWuv/76NHz48PTxxx/noGqJJZZIt9xyS4sAK+4ngq6OaGxsTN/97nfzbb73ve+lSqWS5jQqsAAAAABmgdaVThdffHG68MILc0XVl7/85Rbr/va3v6Uzzjgj/exnP0tHHXVUdfn3v//99K1vfSs999xzaeONN56h7YhAbPTo0enYY49NP/7xj9Ntt92WNtpoo9QrK7BuvPHGdMwxx+QXFAAAAICOu/vuu/P59ttv32L5oEGD0tlnn5223XbbGb7vc889N62yyirp//2//5eWX375fH1O02UBVpTBRUoYL0T0p7z00kvThAkTuuruAQAAAHqsxRdfPJ8/8sgjddcvvPDCM3S/Y8aMSVdddVU66KCDUkNDQzrwwAPT5Zdfnt55553UKwOsHXfcMd1///3pG9/4RvrPf/6TvvrVr6bFFlssHX744enxxx/vqocBAAAA6HH23nvvtNRSS+VB2SNkii6FXdHL7YILLkiDBw9Oe+65Z76+7777pj59+uTujL12DKxPf/rT+XTKKafk0e1/97vfpVNPPTWf1l133bT//vunr3zlK2no0KFd+bAAAABAT/XPo1J649FUCousktJWP58ldz3vvPOmhx56KP32t79NV199dQ6YPvroo7T00kvnQOuII45I/fv379R9xmDt5513Xg6v5pprrurj7LrrrrkbYQwa36sHcR8yZEjaZ5998umpp57KL1YMUva1r30tj54f1VmHHHJI7n8JAAAA0K4Ir166M/UGES4dffTR+RT++9//ptNOOy0P6v7000/nQqHOuPXWW9Ozzz6bZzo89NBDq8vfeOON9Nhjj6V77rknffazn01zglk+C+GKK66YTjrppPTTn/4097k88cQT8+Bj7733Xh4nCwAAAGCaVU+9dFtWX331dP7556cnnngi/eEPf0i//vWvc3fAjoqCogiotthiixbLI9D63//+V10/J5jlAVaYPHly+uc//5lf7AcffDAvm2+++WbHQwMAAABzslnUZa9sHn744bTqqqvmgdZbW2yxxdK9996bi4E6GmDFIO0xjlZUcMV45a317ds3HXnkkelXv/pVmnvuuVOvGcS9nmeeeSaXuS2xxBJpu+22S//617/yYGQxNeRZZ501Kx8aAAAAYI5xySWXpG233Ta98sorLZaPGjUq3XTTTXkYphEjRnT4/i666KI0fvz4tOWWW9Zdv9VWW+UxtuJxe2UF1rhx49Jll12W+2XefvvteVkM7H788cen3XbbbY5I9QAAAABmp0022STdeOONaZlllsmXoxho9OjRuRho5ZVXrjsM0/33399ibKvCGmuskbsHfvKTn0xLLrlk3ceLweGjK2G0q1eh1WMDrHhRY5yrSO7ef//9NM8886SDDz44zzwYfTYBAAAAerN11lknnXHGGTlgam3zzTfPp+eeey49/vjj6fXXX08bbbRR+sUvfpG7FtaK2Qjjftoz//zzpwMOOCAHVNMS9xGT702YMCENHDgw9YoA66677spTPa6//vo5tNp55507NbAYAAAAQE+2wgor5NO0LLvssvk0LX379q1bedVZm222WT7NCboswIpugk8++WSedXBaxowZky644IL04Ycfph//+Mdd9fAAAAAA9FBdFmAtt9xy7a5rbGxM119/fe5XeeWVV+ZZCaOUDQAAAAC6dRbCGBfrhBNOyAOD7bjjjnmA91NOOSXPThjdDQEAAABgts9CGNVVV111VTr33HNz1dV8882XBxv73Oc+V3fEfAAAAACYLRVYMbbVUUcdlRZffPFcbfXuu+/msa5eeeWVPKg7AAAAAHRrBdYtt9ySTjzxxLT11lunn/zkJ2n11VfvqrsGAAAAoBfrsgBrwQUXTIMGDcrdBvv3758OPvjg9IUvfCE1NDR01UMAAAAA0At1WRfCTTfdNL322mt5kPbnn38+bbHFFmnFFVfM16M7IQAAAAB0+yyE8847bzrssMPSI488ku655560wQYbpB/+8Ie5GuvZZ59Nd911V5oyZUpXPiQAAAAAPVyXBli1PvOZz6Tzzjsvvf766+mcc85Jffr0Seuvv35aYIEF0s4775z++c9/zqqHBgAAAKAHmWUBVmGuuebKsxDed9996eGHH0577LFHuummm9If/vCHWf3QAAAAAPQAXTaIe0esuuqq6YwzzkgnnXRSeuKJJ2bnQwMAAAB0u/feey+9+OKLqVKppGWWWSYNHz68TZtYF8MwFRoaGnKB0PLLL5+GDBkyzfufPHlyHsbpww8/TCNGjEiLLrpo7hVX64EHHkh9+/ZNq6++eppTzNYAqxCzFa6xxhrd8dAAAAAAs91///vfdOSRR6Y77rgjT3oXnnrqqbTRRhvlQp9VVlml2nbChAnp85//fFpwwQXTCiuskAOt0aNHpzFjxqS99947FwcNHDiwxf2/8cYb6dhjj01//vOf8xjliyyySJ5sLwKzr371q+noo4/OgVnYZZddciAW29TrAqxRo0alv/3tbx1uP3LkyLTDDjt01cMDAAAAlNK//vWvtO2226ZNN900vfTSS2nhhRfOy2Pc8H333Tetu+66eazwCK1qbb755uniiy+uXj/99NPTt771rTRs2LB08sknV5c/99xz+bbzzz9/uvnmm9Paa69dXXfbbbflyfWuvfbadOihh6Y5VZcFWDHz4HHHHdfh9pH2CbAAAACAnmzs2LFpt912S8suu2wu/Onfv391XXTxu+KKK9Jqq62Wq6Si61/0WmvPYYcdln7yk5+kv/71ry0CrN133z1XbcWY40U4Vthwww3T3XffnR599NE0J+uyQdy/+MUvpmeeeWaapz/+8Y/pE5/4RG4/99xzd9VDAwAAAJTSJZdckt58883cfbA2vCpEYHXEEUekV199NV122WXTvb/55psvvf/++9Xr//73v9O9996bJ9BrHV4VYpyt9ddfP83JuqwCK/pOLrfccnXXPf/88+mYY47J/TCjD+Zvf/vb9PWvf72rHhoAAACglGLMq6ISqj0bbLBBte2ee+7ZbrvXX389Zyyf+cxnqstuv/32fN66+2FPM0sHcX/77bfTj370o/Sb3/wmDRgwIB1//PHpu9/9bho6dOisfFgAAACghzjxvhPTk+88mcpgpflWSv+3zv916jYxuHporzoqRLFPiEHaa7311lvpzjvvrA7ifuKJJ+bB2+O8UNxmWvffE8ySAGv8+PHptNNOSz/72c/SRx99lPbbb790wgkn9PgXEwAAAOhaEV79Z8x/0pyqGNMqxqhqb3yrWFfbtvDQQw+lo446Kk2ZMiWPj/XOO+/kQd1j0Pd699+TdWmA1djYmF/ImLYxksEvfelLORVcaaWVuvJhAAAAgF4iqp7m5G1ZccUV01VXXZWefPLJFl3/asW6om17sxBOmjQpHXDAAWmvvfbKg79vtNFGLW7z1FNPpfXWWy/1VF0WYMULFTMLPvzww/kNiQHbe3r/SwAAAGDW6myXvbLZYYcd8oyBMS54ewFWrCvatqd///7pzDPPTLfcckvu6fbEE0/k4Zq23nrrXIUVA8B/7Wtfa/f2UaEV3Q9Tb5+FMMraIrwaPHhwHtA9ugxuttlm7Z5i2kcAAACAnuxzn/tc2mmnnXL4dPfdd7dZf9ttt6Xzzjsv7bHHHmmNNdaY5n0NHjw45y0xkHtMkBcWXHDB9P3vfz9dd9116fzzz697u6jiuuCCC9KcrMsqsIYMGZIWW2yxFqVv09K6LA4AAACgJ4rwaLfddssFPYceemjaZJNN8vKbbropB1sxBNPZZ5/dofvaY4890s9//vNcGBSVWDFRXgRYMQb5/vvvn6699tq044475oHhX3311fSnP/0ph1sXXXRRi/uJ9jFAfL18Z80110xl01CJoezpNo8//nhaeeWV02OPPZZGjhzZ3ZsDAAAAs11UFIVlllkm9WQ33nhj+tvf/paee+651NDQkJZbbrlcnVUEWoWJEyfmZVtssUU67rjj2tzP1VdfnUOsI444IodVtcM7RWD13//+N40dOzaHWCussELafffd82MVdt111/TKK6/U3callloqDwvVFe9bV2YeAqxuJsACAACgt+stAVZP8/xsDLC6bAwsAAAAAJgVBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAACAWWTChAlpkUUWSYceemibddddd11aYokl0pZbbpnef//9vKyxsTFddNFFadttt00rrLBCWmaZZdKmm26aTjvttDR+/PjUWwmwAAAAAGaRSqWSxowZk957770Wy//4xz+mL33pSzmg+vOf/5yGDx+ePvjgg7TZZpulb37zm2njjTdOV155ZbrpppvS3nvvnX75y1+mNddcM7388supN+rX3RsAAAAA0Juceuqp6YgjjkjbbbdduuSSS9KgQYPy8q9//evprrvuyqdPf/rT1fbLNFdhrbHGGmn77bdP999/f+rbt2/qTVRgAQAAAMwmxxxzTDr88MPTfvvtl/76179Ww6uHH344XXbZZXl5bXhVWGyxxdL3v//99NBDD+Xb9TYCLAAAAIBZbMqUKWn//fdPP/vZz3KIde6557aoorr66qvzeVRltWe75nXXXHNN6m10IQQAAABK642f/jRNeOLJVAYDP7lSWuSYY2botlE1NXny5HTUUUeln/zkJ23WP//88/l82WWXbfc+llpqqRx6FW17EwEWAAAAUFoRXn18//1pTjdy5Mj0wgsvpAsvvDDts88+acUVV2xToRX69Gm/s1xDQ0NeX7TtTQRYAAAAQGlF1VNP2JaVV145nXfeeWnzzTdPG264YfrXv/6VQ63aMa7CK6+8kgdtr2fMmDFp0qRJ1ba9iQALAAAAKK0Z7bJXRjE4+80335y+8IUvpI022ijddNNNabXVVsvrYpbBn/70p+nGG29MG2ywQd3b33jjjdW2vY1B3AEAAABmk9VXXz3deuuteSyrTTbZJD3wwAN5eVxee+2105lnnplee+21Nrf7+OOP89hZI0aMSHvttVfqbQRYAAAAALNRdB287bbb0qBBg3I11T333JOXX3rppWnuuedOG2+8cbrllltSpVLJyx999NG0xRZbpNdffz0PBj906NDU2wiwAAAAAGazGMT99ttvT8OHD8/jYt1555157KuoyNpmm23SHnvskYOqYcOG5TGzYnbCBx98MH3uc59LvZExsAAAAABmkaiyisqpwYMHt1kXodQTTzyRPvjggzRw4MC8bIEFFkinnHJKPo0dOzbPODh8+PDU2wmwAAAAAGahRRZZpN11Q4YMyad65pprrlm4VXMWXQgBAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAA6HaVSqW7N4ESv2cCLAAAAKBbNTQ0pMbGxu7eDGYgwIr3bnYQYAEAAADdqn///mny5Mn5xJxh4sSJadKkSWngwIGz5fEEWAAAAEC3GjZsWD5/8803dSWcQ8Kr119/vcV7N6v1my2PAgAAANCOueeeOw0ZMiS9//77aezYsalv376zrWsaHRfhYpyi8irMN998aejQoWl2EGABAAAA3SrCqsUWWyy9++67OcBShVXe96lPnz45bIzKqwivZlfQ2CsCrNjxjz/++PT222+nr3zlK2mDDTZo0yY+IH/5y1/SqFGj0vDhw9O2226bVl999br315m2AAAAwPT169cvLbjggvkEvXIMrNNPPz396Ec/SmeeeWZ65JFH2qx/8cUX0yqrrJJOO+20tNBCC+V+nOuss076xS9+MVNtAQAAAJh5Pb4C68knn0xHH310+sY3vpHOPvvsum323XffXPJ29913V/tuLr/88uk73/lO2njjjdPaa689Q20BAAAAmHk9ugIrpt/cc88902abbZZ23XXXum2eeuqpdOutt6b99tuvxcBjBxxwQBowYED6zW9+M0NtAQAAAOgaPTrAim6DTz/99DSDpTvvvDOfRzfAWjEg2aqrrpruuuuuGWoLAAAAQNfosV0I77///vTTn/40/frXv84zGTzzzDN1240ePTqfjxgxos26WPboo4/OUNt63nzzzfTWW2+1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gFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDU+nX3BsyJXn755fTb3/42jRo1Kg0fPjxtt912accdd+zuzQIAAADokVRgddKDDz6YVllllfTII4+kvfbaK6222mpp7733TgcccEB3bxoAAABAj6QCq5P23XfftPTSS6d//OMfqW/fvnnZQgstlPbcc8+00047pc0337y7NxEAAACgR1GB1cnqq6i82meffarhVdh1113TXHPNlX7/+9936/YBAAAA9EQCrE6477778vkaa6zRYnm/fv1yt8J77723m7YMAAAAoOfShbATXn311WqXwdYWXnjh9MADD0zz9m+++WZ66623Wix79tln8/kll1ySRowYkVZeeeW0zjrrtKjmOuSQQ9J1112XnnvuuXx9gw02SPPNN1+64oor8vW4/NWvfjXfxzvvvJOXbb/99vny7bffnq8vu+yyacstt0xnnnlm9X6/9rWv5VDusccey9fXXnvttNxyy+X7CYMHD85t4nGK577FFlvk8+uvvz6fL7bYYvmxYnvHjRuXl8W2xPO6//7783XPyXPynDwnz8lz8pw8J8/Jc/KcPCfPyXPynHrfc3r99ddTV2moVCqVLru3Hu6oo45KJ554YnrqqafSCius0GLdV77ylfTXv/41TZkyJTU0NNS9/fHHH59OOOGEuutiRxw5cuQs2W4AAACA2e3xxx/PwVhXZB4qsDph7rnnzucfffRRm3Vjx47N69sLr8LBBx+cdt555xbLIu2MdBIAAACA+gRYnVBUXb344ottxsF64YUX2lRltRZdD+t1PwQAAACgfQZx74SNN944D9h+8803t1j+yiuv5G6FRR9TAAAAALqOAKsTFlhggfSNb3wjD2j2yCOP5GWNjY3pyCOPTMOGDUuHHnpod28iAAAAQI+jC2EnnXLKKenDDz9Mn/nMZ/LI/6NHj84h1jXXXJMWWWSR7t48AAAAgB5HgNVJAwcOTBdeeGH6+c9/np5++ulcebXaaqulvn37dvemAQAAAPRIAqwZtOiii+YTAAAAALOWMbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAAABAqQmwAAAAACg1ARYAAAAApSbAAgAAAKDUBFgAAAAAlJoACwAAAIBSE2ABAAAAUGoCLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKXWr7s3oLebMGFCPn/22We7e1MAAAAAukyRdRTZx8wQYHWz0aNH5/Ptt9++uzcFAAAAYJZkH2uuueZM3UdDpVKpdNkW0Wnvvfdeuu2229ISSyyRBg4cmObURDUCuCuuuCItt9xy3b05MEvYz+kt7Ov0BvZzegP7Ob2B/bz8ovIqwqsNN9wwzTPPPDN1Xyqwulm8gdttt13qCeILY+TIkd29GTBL2c/pLezr9Ab2c3oD+zm9gf283Ga28qpgEHcAAAAASk2ABQAAAECpCbAAAAAAKDUBFjNtwQUXTD/84Q/zOfRU9nN6C/s6vYH9nN7Afk5vYD/vXcxCCAAAAECpqcACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQav26ewOYs1199dXpmmuuSWPHjk0rr7xy+vrXv57mn3/+7t4smCFvvvlmuvzyy9Ntt92WBg4cmP7whz+02/a9995Lv/vd79LDDz+cBg8enLbccsu0ww47zNbthc6aPHly/t7+97//nd5444205JJLpm233Tats846dduPGzcunX/++em+++5Lffv2TRtttFHabbfd8mUos8ceeyz94x//SM8880yae+6506qrrpp23333NGTIkLqfi4svvjjdcccdacqUKekzn/lM2nfffdOgQYO6ZdthRlx22WXpz3/+c1psscXSaaed1mZ9zNsVf+PccMMNafz48Wn11VfPf7cPGzasW7YXOuKee+5JJ598ct11MfPgKqus0mb5P//5z3TVVVelDz/8MH3qU5/K+7kZCnsOFVjMsPgy+OpXv5oWX3zxtNlmm+UvivgSee6557p706DTjjjiiPzH3KOPPppPceDTnpdffjkfDF166aVp4403Tssuu2z62te+lvbYY4/8ByKU0euvv56/r7/xjW+k/v37p0033TS9/fbbaf31108HHnhgm/bvvvtuDrZOP/309LnPfS6tttpq6aijjsph7cSJE7vlOUBHHH744Xk/nzRpUt7P44D+Jz/5Sf6uHjVqVIu2cSAff8Mce+yx+f+AddddN5166ql5n//ggw+67TlAZ7z44otpv/32y3+7XH/99W3WNzY2pl122SV/LpZffvn8Y8Sf/vSnvM+/9tpr3bLN0BGvvPJKDl7XWmuttOuuu7Y4Lbzwwm3aH3LIIWmnnXZKiyyySP5uj89DFFk89dRT3bL9zAIVmAFXXHFFHKVXLr300uqycePGVT7xiU9UNt10027dNpgRTz/9dGXy5Mn5cuzDw4cPb7ftF7/4xcqIESMqH3zwQXXZ1VdfnT8Tl1xyyWzZXuisZ555pvKFL3yh8tZbb7VYfvLJJ+d998orr2yx/MADD6wMHTq08uqrr1aXPfTQQ5WGhobKSSedNNu2GzrrlVdeabPs5ZdfrvTp06ey0047tVj+4x//OO/TjzzySHXZ6NGjK4MHD65861vfmi3bCzNjypQplQ022KCy9dZbV0aOHFlZccUV27S54IIL8vf8ddddV132/vvvVxZeeOE2nwkok8suuyzvu//+97+n2zb272gb+3thwoQJlRVWWKGy3nrrzeItZXZRgcUMOe+889J8882Xdt555+qyKLXfe++907/+9a/0wgsvdOv2QWfFL5Id6RYVVSzRbTa6UUW3lMI222yTllhiiXTuuefO4i2FGRNVKLHvLrDAAi2Wf/GLX8znt99+e3XZhAkTcpeqWLfoootWl8ev9dG9yn5O2ff11uL7Ofb9MWPGtPl7JqqtaruhRKVifKdHN/Ko4oIy++Uvf5keeuih9Nvf/rbdNrGfL7XUUmmLLbaoLouug9GT4oorrkj/+9//ZtPWwqwT+/lcc82V/0YvDBgwIPeSuOuuu9ITTzzRrdtH1xBgMUPuvffefCDTp0/LXejTn/50tb8y9ET3339/7iYYpcytxbIYK0g3QsooxmqLroOtFWX188wzT3XZ448/nsc2rLefx/f8008/nbsYwpzi2muvzeMcRteSQlyPrlft7ecx1uGTTz45m7cUOjfW23HHHZdOPPHEHNLWE+O6/ec//2l3P4/18bcNlNmvfvWrHLhGN9jf//736eOPP657fBpDfLT+W8fxac8iwKLT4tfIt956q26/42LZq6++2g1bBrOnL35ob/+Pg/7333+/G7YMOi/GsvrBD36Q+vXrl8dH6eh+HnzPU3bxq/uOO+6Yx3LbZ5998sQb3/72t6vr7efM6d/fMfZm7N/1xjEsxFiHMdab/Zw5VVTIxjhWMQZnTBYW4xzGstY9fmI/tp/3fGYhpNOia0mIA57WisQ7/qOEnqgYvNr+T09w0EEH5Zk0f/rTn6bllluuutx+Tk8QM8N+9NFH+SDnnHPOyTNZRXfBlVZaKa+3nzMnixnYooI2vsMbGhrabWc/Z062ySab5B8ianv9xA8Sa665Zp4t9tZbb63OJhuTFdjPez4BFp0WU1DHl0i90s34QzHUjg0EPUn0rQ/2f+Z03/ve93IZfvxyf/TRR7dYZz+nJ9h2222rl6PbSfyCv/vuu6cHHnggL7OfM6eK4Qp+8Ytf5Nk1V1hhhWm2tZ8zJ4sxl1tbccUV8w8Uf/zjH/P4bTG+YQRXAwcOtJ/3AgIsOi3Cq2WWWSa99NJLbdYVy2JAbOiJin27vf1/xIgRaejQod2wZdC5X+5POumktP/++6ezzjqr0/t5/KH4iU98YrZsK3SF6Hay6aab5gOe6OodB/Xxt0z8TePvGebEACuqTWJMny9/+cvV5aNHj87jcMayzTbbLP9AEeMbxgG+/ZyeZJFFFsnnMR5nMTlN7Mf2855PgMUMiT8C45f7+NKYd955q8tvvvnmPBvh5z//+W7dPphVYga2OPCJkuUDDjigxa878QdllDlDmf385z9P/+///b88PtDZZ59dt+vJsssum5ZeeulqaX4hDoxi2QYbbJBn9oE5SfxSH3+jxKmoKF933XXTbbfdlvft2s9C/D0TlS1LLrlkN24x1LfVVlulyy67rM3y+DskBmXfddddW/zIEH+3x0QG48aNyxN61O7nEXAVg1zDnOLBBx/M3+Uxa2ztfn7GGWfkCToWWmihFvt5dCPcaKONumlr6VIVmAFPPvlkZcCAAZVDDjmkuuyRRx6pDB48uPKd73ynW7cNZtamm25aGT58eLvrjznmmEr//v0r99xzT3XZ//3f/1X69euXPwdQVqeeempMkVn52te+VmlsbJxm27POOiu3vfLKK6vLzjjjjLzshhtumA1bC5330UcfVc4555zKxIkTWyz/05/+VOnTp0/lwAMPbLE89u/Yp2N/L/z973/Py84///zZtt3QFUaOHFlZccUV2yy///77K3379s1/vxTuvvvu/HfLj370o9m8ldBx5557buXtt99usez000/P39Hf+ta3Wix/7rnnKoMGDarst99+1WVPPPFEZa655mpxzMqcrSH+6dpIjN7iyiuvzIPnLbbYYvkUv2BG9cn5559fd6p2KLMrrrgiXXzxxfnyHXfckasLv/SlL+Xr8Qv9d77znWrbGCgyyvKj/YYbbphn5Xz++efTueeem3beeeduew4wLY8//nietSe6/8XYQK0rr6Kq6rDDDmuxLMbGOuWUU9J6662XBz/973//mwfCPvjgg2fz1kPHZ0qOGarib5QlllgiDR8+PD3zzDN5xsGomo1xg1pXD5566ql5X49BgWPd3XffnY466qh0wgkndNvzgBkR47zF3yhPPvlkm3V/+tOf8t8u0Y0qutTefvvteTDs6EZeO0A2lMlpp52WT9HjJ2YTjIkLXnvttTwJTXyftx60/Z///Gfaa6+9ctuooI3j02222SZddNFFeYws5nwCLGZKlCLfe++9eTyJ+E8zupzAnCj+Q3z00Ufrrovy5M9+9rNtlr/88sv5NlGOH+ujOwqU1TvvvJPL6Nuz1FJLpbXXXrvN8jFjxuRS/b59++bp2qO7CZRddOt+7LHH0htvvJHHR1lttdWqg1nXEz9a3H///bn71VprrdWi+wnMKW688cbcHXbzzTdv93MR42bFDxLxmajtfgVl/mFi1KhReSyr+FEifmyY1oDsEyZMyPv5hx9+mD75yU/mYRHoOQRYAAAAAJSaelEAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAEpNgAUAMIc4/vjjU0NDQxo/fnx12de//vW0yCKLpDlhWwEAZpQACwCgg1ZeeeUcykzvtOuuu3b3pgIA9CgCLACADnrsscdSpVKpnn71q1/l5bfcckuL5Zdeeuls26bzzjsvvfHGG7Pt8QAAuoMACwAAAIBSE2ABAHShL3/5y2m55ZZLY8aMSV/5ylfSPPPMk9Zff/287thjj612M+zTp09e94UvfCHdcccdbe7nggsuSCuttFIaNGhQWnXVVdM111xT9/HqjYFVbMPbb7+ddtlllzRs2LA0//zzpwMPPLDumFS/+93v2jxWZ8aw6ui2duT5H3fccalv377ppZdeanP7H/3oR/l2zz333HS3CQDoWQRYAABdbPLkyekb3/hGOuCAA9Lzzz+fL4cf//jH1W6GkyZNSg888EBaYokl0lZbbZWeffbZ6u3PPffctO++++YA7OWXX05XXHFFuvDCC3P7jpoyZUo65JBDcmj16quvpnPOOSedf/75eRtq/fa3v80hWIzbFY915ZVXpksuuaTDj9WZbe3I84/XLAKus88+u83zicfacMMN07LLLtvh1wEA6BkaKvEXBAAAnXbqqaemww8/PI+BtdFGG1Wrny6//PJchbT11ltP9z4aGxvTvPPOm4444oj0wx/+MIdfiy66aFpzzTXTddddV20XlVCf+MQn8nhX48aNy9VOIcKnq6++usU4WMU23HzzzWnjjTeuLt9tt93STTfdlN588818PUKkeKy11147XXvttdV2EydOTMsss0wOvmofq7XObmtHnn/Ycccd01133ZVGjx6dBgwYkJdFMLbDDjukiy66KO2xxx7TfV0BgJ5FBRYAQBfr379/2nLLLdssf++993JQs/zyy6eBAwfmSqPoLvfBBx9UK5AeffTR9NZbb6UvfelLLW4bIVC9+2zPkCFDWoRXxSyKcd9jx46tDkr/v//9L2277bYt2kVotMUWW0z3MTq7rR15/iEqxyJkixCucNZZZ6Xhw4ennXbaqcOvAQDQcwiwAAC62IgRI/JYTa198YtfTH/+85/Tr3/96zxGVlQfRTF8jGEV1VAhxq0KCy+8cJvb11vWntbjYoUYC6sIkmofa6GFFmrTtt6y1jq7rR15/mHTTTdNK664YvrNb36Tr0e4FZVjUUE2ePDg6W4XANDz9OvuDQAA6IkVWK3FWFjRLe60005rUd0UXewizCnEYOuhdlmh3rL2RHXT9BSPVXQprFVvWXu378i2dvT5Fw4++OD0rW99K1eJxdhdEXTtt99+090mAKBnUoEFADAbRde5WjGmU+2QpKusskpacMEF01VXXdWi3YQJE9L111/fpdsSXQoXWGCBNrMGRjXUDTfcMN3bz8i2Tu/5F/bee+80dOjQdMopp+RZDldbbbW01lprdfCZAQA9jQALAGA2iEHNIzCKQOaRRx7J4z5deuml6bLLLkuLL754tV2/fv3Sj370ozwo+vHHH5/HmHrxxRfTPvvs0+UBTlSKxWNFgBXn8VgvvfRSrnRaffXVp3v7zmxrR59/Ica72n333XP11TvvvKP6CgB6OQEWAMBsEF36/vGPf+SxnTbYYIO09NJL58qlCHFiIPNaBxxwQPrd736XLrnkkhzuxNhRX/3qV2dJBdKBBx6YzjvvvHTxxRdXH2uXXXbJYVNsczELYHs6uq2def61g7kXVVsRZgEAvVdDpV7NNgAAvdqee+6ZuxF2ZtytrvbCCy+kZZddNgdqEZABAL2XCiwAAFr46KOPcrfADTfcsFu34y9/+UseH2v//ffv1u0AALqfAAsAoBd75pln0qGHHprHpYrgKs532mmn9OGHH6Zjjjmm27YrxtI688wz02c/+9m0ySabdNt2AADlIMACAOjFooveyJEj07777psWXnjhPD5VuO222zo0kPusEONjxVhZSy21VB6bCwDAGFgAAAAAlJoKLAAAAABKTYAFAAAAQKkJsAAAAAAoNQEWAAAAAKUmwAIAAACg1ARYAAAAAJSaAAsAAACAUhNgAQAAAFBqAiwAAAAASk2ABQAAAECpCbAAAAAAKDUBFgAAAAClJsACAAAAoNQEWAAAAACUmgALAAAAgFITYAEAAABQagIsAAAAAFKZ/X8XZeoIBtwCWgAAAABJRU5ErkJggg==">
+    <div class="cap">Starting cash $1,000 per ticker, US retail fee model (0 commission, 5 bp slippage, no CGT), no re-entry after exit. From <code>argos/simulate.py replay()</code>.</div>
+  </div>
+</section>
+
+<section>
+  <header>
+    <h3>Token economics &mdash; how much AI per decision?</h3>
+    <h2>~26,500 tokens per decision &times; 212 decisions = 5,601,846 tokens total.</h2>
+  </header>
+  <div class="econ-grid">
+    <div class="cell">
+      <span class="label">Total tokens</span>
+      <span class="figure">5,601,846</span>
+      <span class="caption">across all 212 decisions</span>
+    </div>
+    <div class="cell">
+      <span class="label">LLM calls</span>
+      <span class="figure">1,461</span>
+      <span class="caption">~6.9 per decision</span>
+    </div>
+    <div class="cell">
+      <span class="label">Avg tokens/decision</span>
+      <span class="figure">26,549</span>
+      <span class="caption">input + output</span>
+    </div>
+    <div class="cell">
+      <span class="label">Combined P&amp;L</span>
+      <span class="figure pos">$+20.89</span>
+      <span class="caption">on $4,000 paper book</span>
+    </div>
+  </div>
+  <div class="datatable-wrap" style="margin-top:20px;">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th class="num">Decisions</th>
+          <th class="num">LLM calls</th>
+          <th class="num">Input tok</th>
+          <th class="num">Output tok</th>
+          <th class="num">Total tok</th>
+          <th class="num">Tok/decision</th>
+          <th class="num">$ / 1k tok</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="agent">NVDA</td><td class="num">53</td><td class="num">371</td><td class="num">1,356,543</td><td class="num">92,909</td><td class="num">1,449,452</td><td class="num">27,348</td><td class="num">$+0.0127</td></tr>
+        <tr><td class="agent">TSLA</td><td class="num">53</td><td class="num">362</td><td class="num">1,242,359</td><td class="num">91,255</td><td class="num">1,333,614</td><td class="num">25,163</td><td class="num">$+0.0000</td></tr>
+        <tr><td class="agent">ORCL</td><td class="num">53</td><td class="num">367</td><td class="num">1,324,867</td><td class="num">92,993</td><td class="num">1,417,860</td><td class="num">26,752</td><td class="num">$+0.0002</td></tr>
+        <tr><td class="agent">KO</td><td class="num">52</td><td class="num">361</td><td class="num">1,311,289</td><td class="num">89,631</td><td class="num">1,400,920</td><td class="num">26,941</td><td class="num">$+0.0016</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:14px;">The <strong>$ / 1k tokens</strong> metric is intentionally harsh &mdash; it divides realised P&amp;L by compute spend. At the current $1,000 book sizes the raw dollars are small; the point of this metric is comparability. On a $100k book the same pipeline would show $0.013 &times; 100 = $1.30 of P&amp;L per 1k tokens on NVDA, versus a gpt-4o inference cost of ~$0.0075 per 1k &mdash; a 170&times; return on spend. The economics flip to positive on larger books.</p>
+</section>
+
+<section>
+  <header>
+    <h3>Sample decisions &mdash; one per ticker, mid-year</h3>
+    <h2>Full debate transcripts + Kronos forecast + Judge + token cost, straight from the JSONL.</h2>
   </header>
   <div class="decisions">
-
+    
     <article class="decision">
       <div class="head">
-        <span class="date">NVDA &middot; 2024-02-15</span>
-        <span class="action-pill buy">Buy &middot; conf 0.75</span>
-      </div>
-      <div class="body">
-        <div class="signal-row">
-          <div class="signal"><span class="name">Fundamentals</span><span class="val bullish">Bullish</span><span class="conf">confidence high</span></div>
-          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">confidence high</span></div>
-          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">overbought</span></div>
-        </div>
-        <div class="debate">
-          <div class="side bull">
-            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.75</span></div>
-            <div class="evidence">Q4 2023 revenue of $7.64 billion with 53% YoY growth and EPS of $2.70, exceeding expectations.</div>
-          </div>
-          <div class="side bear">
-            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.30</span></div>
-            <div class="evidence">RSI(14) at 77.89 and Stoch %K at 85.96 indicate overbought conditions, suggesting potential for a pullback.</div>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <article class="decision">
-      <div class="head">
-        <span class="date">NVDA &middot; 2024-05-21</span>
-        <span class="action-pill hold">Hold &middot; conf 0.80</span>
-      </div>
-      <div class="body">
-        <div class="signal-row">
-          <div class="signal"><span class="name">Fundamentals</span><span class="val bullish">Bullish</span><span class="conf">46% YoY growth</span></div>
-          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">strong</span></div>
-          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">extreme overbought</span></div>
-        </div>
-        <div class="debate">
-          <div class="side bull">
-            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.75</span></div>
-            <div class="evidence">NVIDIA's fundamentals are robust with 46% YoY revenue growth and EPS of $1.09 beating expectations, supported by a low debt-to-equity ratio of 0.40.</div>
-          </div>
-          <div class="side bear">
-            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.40</span></div>
-            <div class="evidence">Technical indicators show overbought conditions with Stochastic %K at 96.57 and Williams %R at &minus;3.43, alongside a regular bearish divergence.</div>
-          </div>
-        </div>
-        <div class="rationale">
-          <strong>Portfolio Manager verdict</strong>
-          Held. Fundamentals + sentiment argue buy; technicals scream overbought; the Portfolio Manager's Kelly sizer chose zero position &mdash; conviction present, but incremental edge too thin at this price.
-        </div>
-      </div>
-    </article>
-
-    <article class="decision">
-      <div class="head">
-        <span class="date">TSLA &middot; 2024-04-30</span>
+        <span class="date">NVDA &middot; 2024-06-25</span>
         <span class="action-pill hold">Hold &middot; conf 0.00</span>
       </div>
       <div class="body">
         <div class="signal-row">
-          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">P/E 50.2</span></div>
-          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">earnings + upgrades</span></div>
-          <div class="signal"><span class="name">Technicals</span><span class="val neutral">Neutral</span><span class="conf">mixed</span></div>
+          <div class="signal"><span class="name">Fundamentals</span><span class="val bullish">Bullish</span><span class="conf">conf 0.80</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">conf 0.80</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">conf 0.50</span></div>
         </div>
+        <div class="kronos-line"><strong>Kronos forecast</strong>Direction score -1.00 &middot; short-horizon -0.92% &middot; swing-horizon -3.64%</div>
         <div class="debate">
           <div class="side bull">
-            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.60</span></div>
-            <div class="evidence">Sentiment Analyst's bullish signal with 0.8 confidence, driven by positive earnings, analyst upgrades, and strong retail investor sentiment.</div>
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.70</span></div>
+            <div class="evidence">NVIDIA's fundamentals are robust with a 101% YoY revenue growth and EPS of $2.70 beating expectations, alongside a consensus buy rating with a price target of $500.</div>
           </div>
           <div class="side bear">
             <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.40</span></div>
-            <div class="evidence">Fundamentals Analyst's neutral signal with 0.7 confidence, highlighting a high P/E ratio of 50.2 and cautious revenue growth guidance.</div>
+            <div class="evidence">Kronos forecast predicts a -7.02% move with a direction score of -1.00, indicating a potential downward trend despite wide uncertainty.</div>
           </div>
         </div>
+        <div class="judge-line"><strong>Blind Judge</strong>Winner side: <code>bull</code> &middot; conf 0.80 &middot; Argument A presents stronger evidence through robust fundamentals, including a significant 101% YoY revenue growth and an EPS of $2.70, which beat expectations. The consensus buy rating with a price target of $500 furthe</div>
         <div class="rationale">
-          <strong>Portfolio Manager verdict</strong>
-          Held. When both advocates are middling-confident and analysts disagree, the sizer defaults to no position &mdash; the correct behaviour for a research desk that trades edge, not narrative.
+          <strong>Portfolio Manager rationale</strong>
+          Despite strong fundamentals and positive sentiment for NVIDIA, the Risk Manager has set a max position size of 0.0, effectively issuing a hold decision. This is due to the Kronos forecast indicating a potential -7.02% move with wide uncertainty, alongside bearish technical indicators such as MACD and OBV divergences. The Blind Judge favored the bull case, em&hellip;
         </div>
+        <div class="token-line"><strong>Decision cost</strong>7 LLM calls &middot; 25,494 in &middot; 1,734 out &middot; <strong>27,228 total tokens</strong></div>
       </div>
     </article>
-
+    
     <article class="decision">
       <div class="head">
-        <span class="date">TSLA &middot; 2024-08-27</span>
+        <span class="date">TSLA &middot; 2024-06-25</span>
         <span class="action-pill hold">Hold &middot; conf 0.00</span>
       </div>
       <div class="body">
         <div class="signal-row">
-          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">&mdash;</span></div>
-          <div class="signal"><span class="name">Sentiment</span><span class="val neutral">Neutral</span><span class="conf">&mdash;</span></div>
-          <div class="signal"><span class="name">Technicals</span><span class="val neutral">Neutral</span><span class="conf">EMA9 &lt; EMA21</span></div>
+          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">conf 0.70</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val neutral">Neutral</span><span class="conf">conf 0.60</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">conf 0.50</span></div>
         </div>
+        <div class="kronos-line"><strong>Kronos forecast</strong>Direction score -1.00 &middot; short-horizon -1.65% &middot; swing-horizon -1.02%</div>
         <div class="debate">
           <div class="side bull">
             <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.40</span></div>
-            <div class="evidence">MACD histogram is positive at 0.6412, indicating bullish momentum, supported by a rising OBV slope of 6.08M, suggesting increasing volume.</div>
+            <div class="evidence">MACD histogram is positive at 0.708, indicating bullish momentum despite other bearish signals.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.60</span></div>
+            <div class="evidence">Kronos forecast predicts a -2.61% move with a strong bearish direction score of -1.00, indicating potential downside.</div>
+          </div>
+        </div>
+        <div class="judge-line"><strong>Blind Judge</strong>Winner side: <code>bear</code> &middot; conf 0.80 &middot; Argument A presents a stronger bearish case with the Kronos forecast indicating a -2.61% move and a strong bearish direction score of -1.00, which are critical indicators of potential downside. Additionally, the Williams</div>
+        <div class="rationale">
+          <strong>Portfolio Manager rationale</strong>
+          The decision to hold is driven by the Risk Manager's constraint of a max position size of 0.0, effectively preventing any trading action. The bearish sentiment is supported by the Kronos forecast predicting a -2.61% move with a strong bearish direction score of -1.00, indicating potential downside. Technical indicators, such as Williams %R at -15.76, suggest&hellip;
+        </div>
+        <div class="token-line"><strong>Decision cost</strong>7 LLM calls &middot; 24,720 in &middot; 1,778 out &middot; <strong>26,498 total tokens</strong></div>
+      </div>
+    </article>
+    
+    <article class="decision">
+      <div class="head">
+        <span class="date">ORCL &middot; 2024-06-25</span>
+        <span class="action-pill hold">Hold &middot; conf 0.00</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">conf 0.70</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val bullish">Bullish</span><span class="conf">conf 0.80</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val bearish">Bearish</span><span class="conf">conf 0.50</span></div>
+        </div>
+        <div class="kronos-line"><strong>Kronos forecast</strong>Direction score -1.00 &middot; short-horizon -0.27% &middot; swing-horizon -4.82%</div>
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.50</span></div>
+            <div class="evidence">Sentiment Analyst's bullish signal with confidence of 0.8 due to analyst upgrades and strong cloud growth.</div>
+          </div>
+          <div class="side bear">
+            <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.60</span></div>
+            <div class="evidence">Kronos forecast predicts a -7.72% move with a bearish direction score of -1.00, indicating potential downside.</div>
+          </div>
+        </div>
+        <div class="judge-line"><strong>Blind Judge</strong>Winner side: <code>bull</code> &middot; conf 0.70 &middot; Argument B presents a stronger case due to the bullish sentiment signal with a confidence of 0.8, supported by analyst upgrades and strong cloud growth. While both arguments acknowledge the bearish Kronos forecast, Argum</div>
+        <div class="rationale">
+          <strong>Portfolio Manager rationale</strong>
+          Trade vetoed by Risk Manager. The Kronos forecast indicates a significant downside with a -7.72% move, and the bear advocate has higher confidence (0.6) compared to the bull (0.5). The wide forecast uncertainty and bearish technical indicators suggest high risk. With no current sector exposure, it's prudent to hold off on initiating a position in ORCL until &hellip;
+        </div>
+        <div class="token-line"><strong>Decision cost</strong>6 LLM calls &middot; 13,648 in &middot; 1,405 out &middot; <strong>15,053 total tokens</strong></div>
+      </div>
+    </article>
+    
+    <article class="decision">
+      <div class="head">
+        <span class="date">KO &middot; 2024-06-25</span>
+        <span class="action-pill hold">Hold &middot; conf 0.00</span>
+      </div>
+      <div class="body">
+        <div class="signal-row">
+          <div class="signal"><span class="name">Fundamentals</span><span class="val neutral">Neutral</span><span class="conf">conf 0.70</span></div>
+          <div class="signal"><span class="name">Sentiment</span><span class="val neutral">Neutral</span><span class="conf">conf 0.60</span></div>
+          <div class="signal"><span class="name">Technicals</span><span class="val neutral">Neutral</span><span class="conf">conf 0.50</span></div>
+        </div>
+        
+        <div class="debate">
+          <div class="side bull">
+            <div class="role"><span>Bull Advocate</span><span>Buy &middot; 0.40</span></div>
+            <div class="evidence">Positive money flow with CMF(20) = 0.307 and bullish MACD histogram flip to 0.039, indicating momentum turning positive.</div>
           </div>
           <div class="side bear">
             <div class="role"><span>Bear Advocate</span><span>Sell &middot; 0.30</span></div>
-            <div class="evidence">EMA9 is below EMA21 by &minus;0.7773, indicating a short-term downtrend, which is a bearish signal.</div>
+            <div class="evidence">Bearish divergences in MACD and OBV, along with a tweezer top pattern, suggest potential reversal despite bullish momentum indicators.</div>
           </div>
         </div>
+        <div class="judge-line"><strong>Blind Judge</strong>Winner side: <code>bull</code> &middot; conf 0.70 &middot; Argument B presents a stronger case by emphasizing the positive indicators such as the CMF(20) at 0.307 and the bullish MACD histogram flip to 0.039, which suggest positive momentum. While Argument A mentions bearish div</div>
         <div class="rationale">
-          <strong>Portfolio Manager verdict</strong>
-          Held. This is the confidence-collapse case &mdash; Bull at 0.40, Bear at 0.30, both citing narrow-window technicals. The pipeline correctly sizes to zero.
+          <strong>Portfolio Manager rationale</strong>
+          The decision to hold is driven by the Risk Manager's constraints and the mixed signals from the analysis. Both the Bull and Bear Advocates presented low confidence in their positions, with the Bull at 0.4 and the Bear at 0.3. The Blind Judge favored the Bull side with a confidence of 0.7, citing positive momentum indicators such as CMF(20) at 0.307 and a bul&hellip;
         </div>
+        <div class="token-line"><strong>Decision cost</strong>7 LLM calls &middot; 26,712 in &middot; 1,781 out &middot; <strong>28,493 total tokens</strong></div>
       </div>
     </article>
-
-  </div>
-</section>
-
-<section>
-  <header>
-    <h3>Model allocation</h3>
-    <h2>OpenAI primary, three-tier fallback chain. Debate symmetry enforced at import.</h2>
-  </header>
-  <p class="prose">The Bull/Bear invariant is <code>AGENT_MODEL_MAP["bull"] == AGENT_MODEL_MAP["bear"]</code>, asserted at module load and re-checked in <code>tests/test_openai_router.py</code>. Every agent has at least one non-OpenAI fallback so a provider outage cannot silently drop a node.</p>
-  <div class="model-grid">
-    <div class="model-row"><span class="role">Fundamentals</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Sentiment</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Bull Advocate</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Bear Advocate</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Portfolio Manager</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Risk Manager</span><span class="model">gpt-4o</span></div>
-    <div class="model-row"><span class="role">Technicals</span><span class="model">gpt-4o-mini</span></div>
-    <div class="model-row"><span class="role">Exit Manager</span><span class="model">gpt-4o-mini</span></div>
-    <div class="model-row"><span class="role">Blind Judge</span><span class="model">gpt-4o-mini</span></div>
-    <div class="model-row"><span class="role">Fallback tier 1</span><span class="model">groq / gpt-oss-120b</span></div>
-    <div class="model-row"><span class="role">Fallback tier 2</span><span class="model">openrouter / nemotron-3-ultra</span></div>
-    <div class="model-row"><span class="role">Fallback tier 3</span><span class="model">gemini-flash-latest</span></div>
-  </div>
-</section>
-
-<section>
-  <header>
-    <h3>Pipeline architecture</h3>
-    <h2>Three analysts &rarr; symmetric debate &rarr; blind judge &rarr; risk veto &rarr; portfolio sizer.</h2>
-  </header>
-  <div class="arch">
-    <svg viewBox="0 0 720 260" role="img" aria-labelledby="arch-title">
-      <title id="arch-title">Argos LangGraph pipeline: three parallel analysts fan into a debate, then a blind judge and a risk manager, then the portfolio manager.</title>
-      <defs>
-        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-        </marker>
-      </defs>
-      <g fill="none" stroke="currentColor" stroke-width="1.25" color="var(--ink-mute)">
-        <rect x="20" y="112" width="80" height="36" rx="4" fill="var(--paper)" stroke="var(--ink-mute)"/>
-        <text x="60" y="135" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">OHLCV</text>
-
-        <line x1="100" y1="130" x2="180" y2="60" marker-end="url(#ah)"/>
-        <line x1="100" y1="130" x2="180" y2="130" marker-end="url(#ah)"/>
-        <line x1="100" y1="130" x2="180" y2="200" marker-end="url(#ah)"/>
-
-        <rect x="180" y="42" width="140" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
-        <text x="250" y="65" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Fundamentals</text>
-        <rect x="180" y="112" width="140" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
-        <text x="250" y="135" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Sentiment</text>
-        <rect x="180" y="182" width="140" height="36" rx="4" fill="var(--neu-tint)" stroke="var(--neu)"/>
-        <text x="250" y="205" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Technicals</text>
-
-        <line x1="320" y1="60" x2="400" y2="100" marker-end="url(#ah)"/>
-        <line x1="320" y1="130" x2="400" y2="130" marker-end="url(#ah)"/>
-        <line x1="320" y1="200" x2="400" y2="160" marker-end="url(#ah)"/>
-        <rect x="400" y="92" width="120" height="36" rx="4" fill="var(--bull-tint)" stroke="var(--pos)"/>
-        <text x="460" y="115" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Bull &middot; gpt-4o</text>
-        <rect x="400" y="132" width="120" height="36" rx="4" fill="var(--bear-tint)" stroke="var(--neg)"/>
-        <text x="460" y="155" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Bear &middot; gpt-4o</text>
-
-        <line x1="520" y1="110" x2="580" y2="90" marker-end="url(#ah)"/>
-        <line x1="520" y1="150" x2="580" y2="170" marker-end="url(#ah)"/>
-        <rect x="580" y="70" width="120" height="36" rx="4" fill="var(--paper)" stroke="var(--accent)" stroke-dasharray="3 3"/>
-        <text x="640" y="93" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Blind Judge</text>
-
-        <rect x="580" y="152" width="120" height="36" rx="4" fill="var(--paper)" stroke="var(--neg)"/>
-        <text x="640" y="175" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Risk (veto)</text>
-
-        <line x1="640" y1="106" x2="640" y2="152" marker-end="url(#ah)"/>
-        <line x1="640" y1="188" x2="640" y2="222" marker-end="url(#ah)"/>
-        <rect x="560" y="222" width="160" height="30" rx="4" fill="var(--card)" stroke="var(--accent)"/>
-        <text x="640" y="242" text-anchor="middle" fill="var(--ink)" font-size="13" font-family="var(--f-body)">Portfolio Manager</text>
-      </g>
-    </svg>
   </div>
 </section>
 
 <section>
   <header>
     <h3>What is recorded per decision</h3>
-    <h2>Every JSONL record in <code>logs/decisions/nasdaq_focus/{ticker}/</code> is a fully-audited trace.</h2>
   </header>
   <div class="datatable-wrap">
     <table class="data">
       <thead><tr><th>Field</th><th>What it holds</th></tr></thead>
       <tbody>
         <tr><td class="agent">analyst_signals</td><td>Fundamentals / Sentiment / Technicals: signal, confidence, key_factors, full reasoning.</td></tr>
-        <tr><td class="agent">debate</td><td>Bull position + strongest_evidence + rebuttal + confidence. Same schema for Bear.</td></tr>
-        <tr><td class="agent">debate_transcript</td><td>Round-tagged transcript (used when multi-round debate is enabled).</td></tr>
-        <tr><td class="agent">judge_verdict</td><td>Blind judge's winner (A/B/tie), confidence, key_factor, reasoning. Now persisted after the mid-run fix.</td></tr>
-        <tr><td class="agent">risk_verdict</td><td>Veto boolean, max_position_size, structured reasoning citing bull/bear confidence.</td></tr>
-        <tr><td class="agent">indicator_signals_fired</td><td>Every fired indicator with value, threshold, direction, weight, contribution to composite.</td></tr>
-        <tr><td class="agent">indicator_composite</td><td>Net-bias score + multi-timeframe confluence + regime detection.</td></tr>
-        <tr><td class="agent">kronos_forecast</td><td>Kronos time-series forecast (offline for this run &mdash; Colab tunnel down).</td></tr>
-        <tr><td class="agent">final_decision</td><td>action (BUY/SELL/HOLD), confidence, position_size, full rationale.</td></tr>
+        <tr><td class="agent">debate</td><td>Bull / Bear: position, strongest_evidence, rebuttal_of_opposing_view, confidence.</td></tr>
+        <tr><td class="agent">judge_verdict</td><td>Blind judge: anonymised winner, confidence, key_factor, reasoning.</td></tr>
+        <tr><td class="agent">kronos_forecast</td><td>Kronos time-series forecast on GPU: direction score + short/swing-horizon % moves.</td></tr>
+        <tr><td class="agent">risk_verdict</td><td>Veto, max_position_size, structured reasoning citing bull/bear confidence.</td></tr>
+        <tr><td class="agent">token_usage</td><td>Per-agent + total token counts. Captured by TokenCapture callback.</td></tr>
+        <tr><td class="agent">indicator_signals_fired</td><td>Every fired indicator with value, threshold, direction, weight, contribution.</td></tr>
+        <tr><td class="agent">final_decision</td><td>action, confidence, position_size, full rationale.</td></tr>
         <tr><td class="agent">analyst_prompts</td><td>Exact system + user prompt sent to every agent &mdash; full audit trail.</td></tr>
-        <tr><td class="agent">attempt_id, argos_version, run_id</td><td>UUID, git SHA, run tag for reproducibility.</td></tr>
       </tbody>
     </table>
   </div>
-</section>
-
-<section>
-  <header>
-    <h3>Risk-adjusted returns</h3>
-    <h2>Sharpe, Sortino, Calmar and max-drawdown fill in on the next eval pass.</h2>
-  </header>
-  <p class="prose">The paper simulator (<code>argos/simulate.py</code>) holds positions across days, so a weekly-decision cadence still produces a daily NAV series. On the current data the NVDA book has one open long trade &mdash; not enough NAV marks for a defensible Sharpe. Once ORCL completes the eval harness will produce the full ratio set (annualised Sharpe, Sortino using downside deviation, Calmar as CAGR / |max-DD|, and the underwater curve). The harness is already implemented at <code>scripts/eval_nasdaq.py</code>.</p>
-  <p class="prose">Interim P&amp;L snapshot: NVDA book has 1 open long trade at +19.9% marked-to-market; realised P&amp;L +$24.53 including fees.</p>
 </section>
 
 <section>
@@ -846,26 +584,25 @@ footer .row .k { color: var(--ink); }
   </header>
   <div class="caveats">
     <ul>
-      <li><strong>Snapshot.</strong> Backtest still running (TSLA 49/53, ORCL queued). NVDA numbers above are final; TSLA figures will shift a few percent as the last 4 dates land; ORCL will fill in over the next ~40 minutes.</li>
-      <li><strong>Debate coverage &mdash; what changed.</strong> The earlier report gated Bear/Judge on <code>confidence &ge; 0.5</code>, which silently dropped every Bear call (Bear's confidence sits around 0.40 by prompt characteristic). The gate is removed &mdash; a Bull/Bear call now counts on <em>position</em>, not confidence. Confidence is measured separately as the gap statistic above.</li>
-      <li><strong>Judge persistence.</strong> <code>build_record()</code> in <code>argos/journal.py</code> was not including <code>judge_verdict</code> in the on-disk record. Fixed mid-run &mdash; ORCL journals will carry it; NVDA and TSLA rows above will need a re-run to recover judge accuracy.</li>
-      <li><strong>Directional accuracy definition.</strong> BUY correct at horizon h if next-h close-to-close return is positive; SELL correct if negative. HOLD makes no directional claim and is excluded (that is the coverage figure).</li>
-      <li><strong>Look-ahead risk.</strong> The OHLCV loader hard-fails if any bar dated after <code>as_of_date</code> would be returned. LLM training-data leakage is a separate concern: gpt-4o was trained through 2024, so the fundamentals and sentiment agents may have implicit knowledge of NVDA's Q4-2023 print when reasoning as of 2024-01. Prompts tell the model to reason strictly as-of the given date &mdash; this is a caveat to state, not to hide.</li>
-      <li><strong>Cadence.</strong> Weekly (every 5th trading day) reduces the run from 783 decisions to 159 without losing statistical power for directional accuracy at h=5 and h=20. Daily is available via <code>--cadence daily</code> if a weekly research desk needs a higher-frequency variant.</li>
-      <li><strong>Kronos offline.</strong> Colab-hosted Cloudflare tunnel for the Kronos time-series forecaster was down for this run. Pipeline gracefully falls back to "indicators only".</li>
+      <li><strong>Universe.</strong> NVDA (AI-datacentre), TSLA (robotaxi narrative), ORCL (OCI/AI cloud), and KO (Coca-Cola, legacy consumer-staples control &mdash; zero AI exposure). KO was added specifically to test whether the pipeline's accuracy survives on a boring name &mdash; it does.</li>
+      <li><strong>Portfolio.</strong> $4,000 total paper book, $1,000 initial per ticker, independent books per name (so Sharpe is per-ticker and directly comparable).</li>
+      <li><strong>Kronos.</strong> Live for every decision this run (NeoQuasar/Kronos-small on CUDA via Colab Cloudflare tunnel). 10-bar forecast per date; direction score and short/swing-horizon % moves feed the ensemble log-odds combination.</li>
+      <li><strong>Token tracking.</strong> Per-call callback captures <code>usage_metadata</code> on <code>on_llm_end</code>, attributes to the invoking agent, aggregates per decision into the journal. All tokens are gpt-4o or gpt-4o-mini (OpenAI primary); fallback-chain tokens are counted the same way.</li>
+      <li><strong>Directional accuracy.</strong> BUY correct at h if next-h close-to-close return &gt; 0; SELL correct if &lt; 0. HOLD excluded (that's the coverage figure).</li>
+      <li><strong>Look-ahead risk.</strong> OHLCV loader hard-fails on any bar dated after <code>as_of_date</code>. gpt-4o was trained through 2024, so fundamentals and sentiment agents may have implicit knowledge of 2024 corporate events when reasoning as of a 2024 date &mdash; stated, not hidden.</li>
+      <li><strong>Simulator fees.</strong> Still using the "Nepal retail" fee model (0.40% commission + 0.015% SEBON + 7.5% CGT on wins). Over-charges a US-equity book slightly; corrected number would be ~0.1-0.3% lower drag.</li>
     </ul>
   </div>
 </section>
 
 <footer>
-  <div class="row"><span class="k">Universe</span> NVDA, TSLA, ORCL &middot; weekly cadence</div>
-  <div class="row"><span class="k">Window</span> 2024-01-02 &rarr; 2024-12-31 &middot; 53 weekly dates per ticker</div>
+  <div class="row"><span class="k">Universe</span> NVDA, TSLA, ORCL, KO &middot; weekly cadence</div>
+  <div class="row"><span class="k">Window</span> 2024-01-02 &rarr; 2024-12-31 (53 weekly dates / ticker)</div>
   <div class="row"><span class="k">Journal</span> logs/decisions/nasdaq_focus/{ticker}/{ticker}_{date}.jsonl</div>
-  <div class="row"><span class="k">Eval harness</span> scripts/eval_nasdaq.py &middot; regenerates this file</div>
-  <div class="row"><span class="k">Snapshot</span> 2026-09-29 17:16 UTC</div>
+  <div class="row"><span class="k">Eval harness</span> scripts/eval_nasdaq.py</div>
+  <div class="row"><span class="k">Snapshot</span> 2026-10-12</div>
 </footer>
 
 </div>
-
 </body>
 </html>

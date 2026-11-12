@@ -1,0 +1,1306 @@
+{
+  "NVDA": {
+    "fundamentals": {
+      "agent": "fundamentals",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2736,
+      "ece": 0.2079,
+      "mean_confidence": 0.8185,
+      "mean_accuracy": 0.6226,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 1,
+          "mean_conf": 0.68,
+          "acc": 1.0
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 51,
+          "mean_conf": 0.819607843137255,
+          "acc": 0.6274509803921569
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 1,
+          "mean_conf": 0.9,
+          "acc": 0.0
+        }
+      ]
+    },
+    "sentiment": {
+      "agent": "sentiment",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 44,
+      "brier": 0.2578,
+      "ece": 0.1648,
+      "mean_confidence": 0.8011,
+      "mean_accuracy": 0.6364,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 44,
+          "mean_conf": 0.8011363636363636,
+          "acc": 0.6363636363636364
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "technicals": {
+      "agent": "technicals",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 42,
+      "brier": 0.2531,
+      "ece": 0.0548,
+      "mean_confidence": 0.5071,
+      "mean_accuracy": 0.4524,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 39,
+          "mean_conf": 0.5,
+          "acc": 0.46153846153846156
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 3,
+          "mean_conf": 0.6,
+          "acc": 0.3333333333333333
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "judge": {
+      "agent": "judge",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2658,
+      "ece": 0.184,
+      "mean_confidence": 0.7708,
+      "mean_accuracy": 0.6226,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 17,
+          "mean_conf": 0.7088235294117646,
+          "acc": 0.7647058823529411
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 36,
+          "mean_conf": 0.8,
+          "acc": 0.5555555555555556
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bull": {
+      "agent": "bull",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2292,
+      "ece": 0.0566,
+      "mean_confidence": 0.6792,
+      "mean_accuracy": 0.6226,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 15,
+          "mean_conf": 0.6166666666666667,
+          "acc": 0.5333333333333333
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 38,
+          "mean_conf": 0.7039473684210527,
+          "acc": 0.6578947368421053
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bear": {
+      "agent": "bear",
+      "ticker": "NVDA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2389,
+      "ece": 0.0415,
+      "mean_confidence": 0.4189,
+      "mean_accuracy": 0.3774,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 41,
+          "mean_conf": 0.38048780487804884,
+          "acc": 0.36585365853658536
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 6,
+          "mean_conf": 0.5,
+          "acc": 0.5
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 6,
+          "mean_conf": 0.6,
+          "acc": 0.3333333333333333
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    }
+  },
+  "TSLA": {
+    "fundamentals": {
+      "agent": "fundamentals",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 4,
+      "brier": 0.64,
+      "ece": 0.8,
+      "mean_confidence": 0.8,
+      "mean_accuracy": 0.0,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 4,
+          "mean_conf": 0.8,
+          "acc": 0.0
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "sentiment": {
+      "agent": "sentiment",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 8,
+      "brier": 0.3338,
+      "ece": 0.2625,
+      "mean_confidence": 0.7625,
+      "mean_accuracy": 0.5,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 3,
+          "mean_conf": 0.6999999999999998,
+          "acc": 0.6666666666666666
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 5,
+          "mean_conf": 0.8,
+          "acc": 0.4
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "technicals": {
+      "agent": "technicals",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 43,
+      "brier": 0.25,
+      "ece": 0.0349,
+      "mean_confidence": 0.5,
+      "mean_accuracy": 0.4651,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 43,
+          "mean_conf": 0.5,
+          "acc": 0.46511627906976744
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "judge": {
+      "agent": "judge",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.3342,
+      "ece": 0.2679,
+      "mean_confidence": 0.7585,
+      "mean_accuracy": 0.4906,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 23,
+          "mean_conf": 0.7043478260869565,
+          "acc": 0.6086956521739131
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 30,
+          "mean_conf": 0.8,
+          "acc": 0.4
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bull": {
+      "agent": "bull",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2731,
+      "ece": 0.2217,
+      "mean_confidence": 0.4519,
+      "mean_accuracy": 0.434,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 32,
+          "mean_conf": 0.39375000000000004,
+          "acc": 0.5625
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 13,
+          "mean_conf": 0.5,
+          "acc": 0.23076923076923078
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 8,
+          "mean_conf": 0.60625,
+          "acc": 0.25
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bear": {
+      "agent": "bear",
+      "ticker": "TSLA",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2894,
+      "ece": 0.2189,
+      "mean_confidence": 0.5623,
+      "mean_accuracy": 0.566,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 14,
+          "mean_conf": 0.4,
+          "acc": 0.7857142857142857
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 1,
+          "mean_conf": 0.5,
+          "acc": 1.0
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 29,
+          "mean_conf": 0.6,
+          "acc": 0.5172413793103449
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 9,
+          "mean_conf": 0.7,
+          "acc": 0.3333333333333333
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    }
+  },
+  "ORCL": {
+    "fundamentals": {
+      "agent": "fundamentals",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 8,
+      "brier": 0.115,
+      "ece": 0.075,
+      "mean_confidence": 0.8,
+      "mean_accuracy": 0.875,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 8,
+          "mean_conf": 0.8,
+          "acc": 0.875
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "sentiment": {
+      "agent": "sentiment",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 2,
+      "brier": 0.04,
+      "ece": 0.2,
+      "mean_confidence": 0.8,
+      "mean_accuracy": 1.0,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 2,
+          "mean_conf": 0.8,
+          "acc": 1.0
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "technicals": {
+      "agent": "technicals",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 47,
+      "brier": 0.2541,
+      "ece": 0.0277,
+      "mean_confidence": 0.5128,
+      "mean_accuracy": 0.4894,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 43,
+          "mean_conf": 0.5,
+          "acc": 0.4883720930232558
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 3,
+          "mean_conf": 0.6333333333333333,
+          "acc": 0.6666666666666666
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 1,
+          "mean_conf": 0.7,
+          "acc": 0.0
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "judge": {
+      "agent": "judge",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2776,
+      "ece": 0.2,
+      "mean_confidence": 0.766,
+      "mean_accuracy": 0.566,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 19,
+          "mean_conf": 0.7052631578947368,
+          "acc": 0.42105263157894735
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 34,
+          "mean_conf": 0.8,
+          "acc": 0.6470588235294118
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bull": {
+      "agent": "bull",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2376,
+      "ece": 0.0726,
+      "mean_confidence": 0.4745,
+      "mean_accuracy": 0.5094,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 30,
+          "mean_conf": 0.4,
+          "acc": 0.43333333333333335
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 8,
+          "mean_conf": 0.5,
+          "acc": 0.375
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 14,
+          "mean_conf": 0.6035714285714285,
+          "acc": 0.7142857142857143
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 1,
+          "mean_conf": 0.7,
+          "acc": 1.0
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bear": {
+      "agent": "bear",
+      "ticker": "ORCL",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2487,
+      "ece": 0.0679,
+      "mean_confidence": 0.5283,
+      "mean_accuracy": 0.4906,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 17,
+          "mean_conf": 0.38235294117647056,
+          "acc": 0.4117647058823529
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 2,
+          "mean_conf": 0.5,
+          "acc": 0.5
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 33,
+          "mean_conf": 0.6,
+          "acc": 0.5151515151515151
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 1,
+          "mean_conf": 0.7,
+          "acc": 1.0
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    }
+  },
+  "KO": {
+    "fundamentals": {
+      "agent": "fundamentals",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 1,
+      "brier": 0.04,
+      "ece": 0.2,
+      "mean_confidence": 0.8,
+      "mean_accuracy": 1.0,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 1,
+          "mean_conf": 0.8,
+          "acc": 1.0
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "sentiment": {
+      "agent": "sentiment",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 0,
+      "brier": null,
+      "ece": null,
+      "mean_confidence": null,
+      "mean_accuracy": null,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "technicals": {
+      "agent": "technicals",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 41,
+      "brier": 0.2567,
+      "ece": 0.0415,
+      "mean_confidence": 0.5488,
+      "mean_accuracy": 0.5366,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 25,
+          "mean_conf": 0.5,
+          "acc": 0.52
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 13,
+          "mean_conf": 0.6076923076923076,
+          "acc": 0.6153846153846154
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 3,
+          "mean_conf": 0.6999999999999998,
+          "acc": 0.3333333333333333
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "judge": {
+      "agent": "judge",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2459,
+      "ece": 0.1349,
+      "mean_confidence": 0.7575,
+      "mean_accuracy": 0.6226,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 25,
+          "mean_conf": 0.71,
+          "acc": 0.52
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 28,
+          "mean_conf": 0.8,
+          "acc": 0.7142857142857143
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bull": {
+      "agent": "bull",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.2495,
+      "ece": 0.0953,
+      "mean_confidence": 0.4783,
+      "mean_accuracy": 0.4906,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 31,
+          "mean_conf": 0.39354838709677425,
+          "acc": 0.41935483870967744
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 3,
+          "mean_conf": 0.5166666666666667,
+          "acc": 1.0
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 17,
+          "mean_conf": 0.6,
+          "acc": 0.47058823529411764
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 2,
+          "mean_conf": 0.7,
+          "acc": 1.0
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    },
+    "bear": {
+      "agent": "bear",
+      "ticker": "KO",
+      "horizon": 5,
+      "n": 53,
+      "brier": 0.243,
+      "ece": 0.0717,
+      "mean_confidence": 0.4906,
+      "mean_accuracy": 0.5094,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.5,
+          "n": 24,
+          "mean_conf": 0.37083333333333335,
+          "acc": 0.4166666666666667
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "n": 4,
+          "mean_conf": 0.5,
+          "acc": 0.75
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "n": 24,
+          "mean_conf": 0.6,
+          "acc": 0.5416666666666666
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "n": 1,
+          "mean_conf": 0.7,
+          "acc": 1.0
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        },
+        {
+          "low": 0.9,
+          "high": 1.01,
+          "n": 0,
+          "mean_conf": null,
+          "acc": null
+        }
+      ]
+    }
+  }
+}

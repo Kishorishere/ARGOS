@@ -1,0 +1,1512 @@
+{
+  "NVDA": {
+    "buy_and_hold": {
+      "name": "buy_and_hold",
+      "ticker": "NVDA",
+      "n_periods": 251,
+      "total_return_pct": 178.874,
+      "sharpe": 1.012
+    },
+    "ma_cross": {
+      "name": "ma_cross_20_50",
+      "ticker": "NVDA",
+      "n_periods": 251,
+      "total_return_pct": 39.865,
+      "sharpe": 0.478
+    },
+    "random": {
+      "n": 1000,
+      "mean_sharpe": 1.593,
+      "p025_sharpe": 0.138,
+      "p975_sharpe": 2.972,
+      "mean_return_pct": 74.219
+    },
+    "argos": {
+      "n_decisions": 53,
+      "buy_prob": 0.3208,
+      "sell_prob": 0.0,
+      "sim_stats": {
+        "trades": 1,
+        "wins": 1,
+        "losses": 0,
+        "hit_rate_pct": 100.0,
+        "avg_holding_return_pct": 178.818,
+        "starting_cash": 1000.0,
+        "final_cash": 1020.03,
+        "final_equity_incl_open": 1020.03,
+        "return_pct": 2.003,
+        "total_fees_paid": 0.0,
+        "total_cgt_paid": 0.0,
+        "breakeven_per_trade_pct": 0.02,
+        "fee_mode": "flat_bps",
+        "exits_by_reason": {
+          "end_of_window": 1
+        },
+        "nav_curve": [
+          {
+            "date": "2024-01-02",
+            "equity": 999.9989,
+            "price": 48.0288,
+            "has_position": true
+          },
+          {
+            "date": "2024-01-09",
+            "equity": 1001.1549,
+            "price": 52.9864,
+            "has_position": true
+          },
+          {
+            "date": "2024-01-16",
+            "equity": 1001.9086,
+            "price": 56.2191,
+            "has_position": true
+          },
+          {
+            "date": "2024-01-23",
+            "equity": 1002.7202,
+            "price": 59.7,
+            "has_position": true
+          },
+          {
+            "date": "2024-01-30",
+            "equity": 1003.3947,
+            "price": 62.5926,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-06",
+            "equity": 1004.6616,
+            "price": 68.0258,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-13",
+            "equity": 1005.5695,
+            "price": 71.9195,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-20",
+            "equity": 1004.9473,
+            "price": 69.2513,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-27",
+            "equity": 1007.0977,
+            "price": 78.4735,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-05",
+            "equity": 1008.7872,
+            "price": 85.7196,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-12",
+            "equity": 1010.1704,
+            "price": 91.6517,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-19",
+            "equity": 1009.5857,
+            "price": 89.1438,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-26",
+            "equity": 1010.3211,
+            "price": 92.2978,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-02",
+            "equity": 1009.5982,
+            "price": 89.1977,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-09",
+            "equity": 1008.6454,
+            "price": 85.1113,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-16",
+            "equity": 1009.1246,
+            "price": 87.1665,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-23",
+            "equity": 1007.9639,
+            "price": 82.1886,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-30",
+            "equity": 1008.8891,
+            "price": 86.1563,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-07",
+            "equity": 1009.8545,
+            "price": 90.2965,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-14",
+            "equity": 1010.0409,
+            "price": 91.0963,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-21",
+            "equity": 1010.9779,
+            "price": 95.1148,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-28",
+            "equity": 1015.2828,
+            "price": 113.5771,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-04",
+            "equity": 1015.8724,
+            "price": 116.1059,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-11",
+            "equity": 1016.9148,
+            "price": 120.5761,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-18",
+            "equity": 1020.3259,
+            "price": 135.2056,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-25",
+            "equity": 1018.1192,
+            "price": 125.7418,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-02",
+            "equity": 1017.324,
+            "price": 122.3313,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-09",
+            "equity": 1019.3493,
+            "price": 131.0172,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-16",
+            "equity": 1018.182,
+            "price": 126.0111,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-23",
+            "equity": 1017.3054,
+            "price": 122.2515,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-30",
+            "equity": 1012.9199,
+            "price": 103.4436,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-06",
+            "equity": 1013.0409,
+            "price": 103.9621,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-13",
+            "equity": 1015.8056,
+            "price": 115.8193,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-20",
+            "equity": 1018.389,
+            "price": 126.8986,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-27",
+            "equity": 1018.6331,
+            "price": 127.9457,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-03",
+            "equity": 1013.9128,
+            "price": 107.7018,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-10",
+            "equity": 1013.9361,
+            "price": 107.8015,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-17",
+            "equity": 1015.68,
+            "price": 115.2807,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-24",
+            "equity": 1016.9079,
+            "price": 120.5466,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-01",
+            "equity": 1016.0079,
+            "price": 116.6869,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-08",
+            "equity": 1019.7031,
+            "price": 132.5344,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-15",
+            "equity": 1019.4031,
+            "price": 131.2478,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-22",
+            "equity": 1022.1913,
+            "price": 143.2057,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-29",
+            "equity": 1021.6471,
+            "price": 140.872,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-05",
+            "equity": 1021.3355,
+            "price": 139.5356,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-12",
+            "equity": 1023.2843,
+            "price": 147.8932,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-19",
+            "equity": 1022.9866,
+            "price": 146.6166,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-26",
+            "equity": 1020.6402,
+            "price": 136.5536,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-03",
+            "equity": 1021.4169,
+            "price": 139.8846,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-10",
+            "equity": 1020.2122,
+            "price": 134.7178,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-17",
+            "equity": 1019.1238,
+            "price": 130.05,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-24",
+            "equity": 1021.4099,
+            "price": 139.8544,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-31",
+            "equity": 1020.0308,
+            "price": 133.9398,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-31_close",
+            "equity": 1020.0276,
+            "price": 133.9398,
+            "has_position": false
+          }
+        ]
+      }
+    },
+    "argos_ci": {
+      "n": 53,
+      "mean_sharpe": 1.681,
+      "p025": -0.303,
+      "p975": 3.83
+    }
+  },
+  "TSLA": {
+    "buy_and_hold": {
+      "name": "buy_and_hold",
+      "ticker": "TSLA",
+      "n_periods": 251,
+      "total_return_pct": 62.563,
+      "sharpe": 0.491
+    },
+    "ma_cross": {
+      "name": "ma_cross_20_50",
+      "ticker": "TSLA",
+      "n_periods": 251,
+      "total_return_pct": 105.773,
+      "sharpe": 0.767
+    },
+    "random": {
+      "n": 0,
+      "mean_sharpe": null,
+      "p025_sharpe": null,
+      "p975_sharpe": null,
+      "mean_return_pct": null
+    },
+    "argos": {
+      "n_decisions": 53,
+      "buy_prob": 0.0,
+      "sell_prob": 0.0,
+      "sim_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "hit_rate_pct": 0.0,
+        "avg_holding_return_pct": 0.0,
+        "starting_cash": 1000.0,
+        "final_cash": 1000.0,
+        "final_equity_incl_open": 1000.0,
+        "return_pct": 0.0,
+        "total_fees_paid": 0.0,
+        "total_cgt_paid": 0.0,
+        "breakeven_per_trade_pct": 0.02,
+        "fee_mode": "flat_bps",
+        "exits_by_reason": {},
+        "nav_curve": [
+          {
+            "date": "2024-01-02",
+            "equity": 1000.0,
+            "price": 248.42,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-09",
+            "equity": 1000.0,
+            "price": 234.96,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-16",
+            "equity": 1000.0,
+            "price": 219.91,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-23",
+            "equity": 1000.0,
+            "price": 209.14,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-30",
+            "equity": 1000.0,
+            "price": 191.59,
+            "has_position": false
+          },
+          {
+            "date": "2024-02-06",
+            "equity": 1000.0,
+            "price": 185.1,
+            "has_position": false
+          },
+          {
+            "date": "2024-02-13",
+            "equity": 1000.0,
+            "price": 184.02,
+            "has_position": false
+          },
+          {
+            "date": "2024-02-20",
+            "equity": 1000.0,
+            "price": 193.76,
+            "has_position": false
+          },
+          {
+            "date": "2024-02-27",
+            "equity": 1000.0,
+            "price": 199.73,
+            "has_position": false
+          },
+          {
+            "date": "2024-03-05",
+            "equity": 1000.0,
+            "price": 180.74,
+            "has_position": false
+          },
+          {
+            "date": "2024-03-12",
+            "equity": 1000.0,
+            "price": 177.54,
+            "has_position": false
+          },
+          {
+            "date": "2024-03-19",
+            "equity": 1000.0,
+            "price": 171.32,
+            "has_position": false
+          },
+          {
+            "date": "2024-03-26",
+            "equity": 1000.0,
+            "price": 177.67,
+            "has_position": false
+          },
+          {
+            "date": "2024-04-02",
+            "equity": 1000.0,
+            "price": 166.63,
+            "has_position": false
+          },
+          {
+            "date": "2024-04-09",
+            "equity": 1000.0,
+            "price": 176.88,
+            "has_position": false
+          },
+          {
+            "date": "2024-04-16",
+            "equity": 1000.0,
+            "price": 157.11,
+            "has_position": false
+          },
+          {
+            "date": "2024-04-23",
+            "equity": 1000.0,
+            "price": 144.68,
+            "has_position": false
+          },
+          {
+            "date": "2024-04-30",
+            "equity": 1000.0,
+            "price": 183.28,
+            "has_position": false
+          },
+          {
+            "date": "2024-05-07",
+            "equity": 1000.0,
+            "price": 177.81,
+            "has_position": false
+          },
+          {
+            "date": "2024-05-14",
+            "equity": 1000.0,
+            "price": 177.55,
+            "has_position": false
+          },
+          {
+            "date": "2024-05-21",
+            "equity": 1000.0,
+            "price": 186.6,
+            "has_position": false
+          },
+          {
+            "date": "2024-05-28",
+            "equity": 1000.0,
+            "price": 176.75,
+            "has_position": false
+          },
+          {
+            "date": "2024-06-04",
+            "equity": 1000.0,
+            "price": 174.77,
+            "has_position": false
+          },
+          {
+            "date": "2024-06-11",
+            "equity": 1000.0,
+            "price": 170.66,
+            "has_position": false
+          },
+          {
+            "date": "2024-06-18",
+            "equity": 1000.0,
+            "price": 184.86,
+            "has_position": false
+          },
+          {
+            "date": "2024-06-25",
+            "equity": 1000.0,
+            "price": 187.35,
+            "has_position": false
+          },
+          {
+            "date": "2024-07-02",
+            "equity": 1000.0,
+            "price": 231.26,
+            "has_position": false
+          },
+          {
+            "date": "2024-07-09",
+            "equity": 1000.0,
+            "price": 262.33,
+            "has_position": false
+          },
+          {
+            "date": "2024-07-16",
+            "equity": 1000.0,
+            "price": 256.56,
+            "has_position": false
+          },
+          {
+            "date": "2024-07-23",
+            "equity": 1000.0,
+            "price": 246.38,
+            "has_position": false
+          },
+          {
+            "date": "2024-07-30",
+            "equity": 1000.0,
+            "price": 222.62,
+            "has_position": false
+          },
+          {
+            "date": "2024-08-06",
+            "equity": 1000.0,
+            "price": 200.64,
+            "has_position": false
+          },
+          {
+            "date": "2024-08-13",
+            "equity": 1000.0,
+            "price": 207.83,
+            "has_position": false
+          },
+          {
+            "date": "2024-08-20",
+            "equity": 1000.0,
+            "price": 221.1,
+            "has_position": false
+          },
+          {
+            "date": "2024-08-27",
+            "equity": 1000.0,
+            "price": 209.21,
+            "has_position": false
+          },
+          {
+            "date": "2024-09-03",
+            "equity": 1000.0,
+            "price": 210.6,
+            "has_position": false
+          },
+          {
+            "date": "2024-09-10",
+            "equity": 1000.0,
+            "price": 226.17,
+            "has_position": false
+          },
+          {
+            "date": "2024-09-17",
+            "equity": 1000.0,
+            "price": 227.87,
+            "has_position": false
+          },
+          {
+            "date": "2024-09-24",
+            "equity": 1000.0,
+            "price": 254.27,
+            "has_position": false
+          },
+          {
+            "date": "2024-10-01",
+            "equity": 1000.0,
+            "price": 258.02,
+            "has_position": false
+          },
+          {
+            "date": "2024-10-08",
+            "equity": 1000.0,
+            "price": 244.5,
+            "has_position": false
+          },
+          {
+            "date": "2024-10-15",
+            "equity": 1000.0,
+            "price": 219.57,
+            "has_position": false
+          },
+          {
+            "date": "2024-10-22",
+            "equity": 1000.0,
+            "price": 217.97,
+            "has_position": false
+          },
+          {
+            "date": "2024-10-29",
+            "equity": 1000.0,
+            "price": 259.52,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-05",
+            "equity": 1000.0,
+            "price": 251.44,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-12",
+            "equity": 1000.0,
+            "price": 328.49,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-19",
+            "equity": 1000.0,
+            "price": 346.0,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-26",
+            "equity": 1000.0,
+            "price": 338.23,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-03",
+            "equity": 1000.0,
+            "price": 351.42,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-10",
+            "equity": 1000.0,
+            "price": 400.99,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-17",
+            "equity": 1000.0,
+            "price": 479.86,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-24",
+            "equity": 1000.0,
+            "price": 462.28,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-31",
+            "equity": 1000.0,
+            "price": 403.84,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-31_close",
+            "equity": 1000.0,
+            "price": 403.84,
+            "has_position": false
+          }
+        ]
+      }
+    },
+    "argos_ci": {
+      "n": 53,
+      "mean_sharpe": null,
+      "p025": null,
+      "p975": null
+    }
+  },
+  "ORCL": {
+    "buy_and_hold": {
+      "name": "buy_and_hold",
+      "ticker": "ORCL",
+      "n_periods": 251,
+      "total_return_pct": 62.097,
+      "sharpe": 0.755
+    },
+    "ma_cross": {
+      "name": "ma_cross_20_50",
+      "ticker": "ORCL",
+      "n_periods": 251,
+      "total_return_pct": 23.743,
+      "sharpe": 0.419
+    },
+    "random": {
+      "n": 1000,
+      "mean_sharpe": 1.15,
+      "p025_sharpe": -0.318,
+      "p975_sharpe": 2.35,
+      "mean_return_pct": 29.23
+    },
+    "argos": {
+      "n_decisions": 53,
+      "buy_prob": 0.1132,
+      "sell_prob": 0.0,
+      "sim_stats": {
+        "trades": 1,
+        "wins": 1,
+        "losses": 0,
+        "hit_rate_pct": 100.0,
+        "avg_holding_return_pct": 50.222,
+        "starting_cash": 1000.0,
+        "final_cash": 1000.25,
+        "final_equity_incl_open": 1000.25,
+        "return_pct": 0.025,
+        "total_fees_paid": 0.0,
+        "total_cgt_paid": 0.0,
+        "breakeven_per_trade_pct": 0.02,
+        "fee_mode": "flat_bps",
+        "exits_by_reason": {
+          "end_of_window": 1
+        },
+        "nav_curve": [
+          {
+            "date": "2024-01-02",
+            "equity": 1000.0,
+            "price": 100.4464,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-09",
+            "equity": 1000.0,
+            "price": 100.0314,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-16",
+            "equity": 1000.0,
+            "price": 103.2679,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-23",
+            "equity": 1000.0,
+            "price": 108.3649,
+            "has_position": true
+          },
+          {
+            "date": "2024-01-30",
+            "equity": 1000.0104,
+            "price": 110.6227,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-06",
+            "equity": 1000.0155,
+            "price": 111.7274,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-13",
+            "equity": 1000.0082,
+            "price": 110.1576,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-20",
+            "equity": 999.9848,
+            "price": 105.0896,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-27",
+            "equity": 999.9979,
+            "price": 107.9288,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-05",
+            "equity": 999.996,
+            "price": 107.5025,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-12",
+            "equity": 1000.0702,
+            "price": 123.5881,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-19",
+            "equity": 1000.0776,
+            "price": 125.187,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-26",
+            "equity": 1000.0654,
+            "price": 122.5513,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-02",
+            "equity": 1000.0559,
+            "price": 120.4873,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-09",
+            "equity": 1000.0527,
+            "price": 119.797,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-16",
+            "equity": 1000.041,
+            "price": 117.2597,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-23",
+            "equity": 1000.0162,
+            "price": 111.8838,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-30",
+            "equity": 1000.0102,
+            "price": 110.5811,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-07",
+            "equity": 1000.0289,
+            "price": 114.6447,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-14",
+            "equity": 1000.0421,
+            "price": 117.5028,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-21",
+            "equity": 1000.059,
+            "price": 121.158,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-28",
+            "equity": 1000.0583,
+            "price": 121.0219,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-04",
+            "equity": 1000.0385,
+            "price": 116.7251,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-11",
+            "equity": 1000.0556,
+            "price": 120.4289,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-18",
+            "equity": 1000.1487,
+            "price": 140.6106,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-25",
+            "equity": 1000.1242,
+            "price": 135.293,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-02",
+            "equity": 1000.1426,
+            "price": 139.2885,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-09",
+            "equity": 1000.131,
+            "price": 136.7609,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-16",
+            "equity": 1000.1414,
+            "price": 139.0286,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-23",
+            "equity": 1000.1437,
+            "price": 139.516,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-30",
+            "equity": 1000.1102,
+            "price": 132.2628,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-06",
+            "equity": 1000.0767,
+            "price": 124.9902,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-13",
+            "equity": 1000.1039,
+            "price": 130.8882,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-20",
+            "equity": 1000.1259,
+            "price": 135.675,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-27",
+            "equity": 1000.1228,
+            "price": 135.0023,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-03",
+            "equity": 1000.1274,
+            "price": 135.9967,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-10",
+            "equity": 1000.2011,
+            "price": 151.9751,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-17",
+            "equity": 1000.2532,
+            "price": 163.2642,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-24",
+            "equity": 1000.2457,
+            "price": 161.6362,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-01",
+            "equity": 1000.2518,
+            "price": 162.9621,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-08",
+            "equity": 1000.2843,
+            "price": 169.9909,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-15",
+            "equity": 1000.2848,
+            "price": 170.0996,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-22",
+            "equity": 1000.2903,
+            "price": 171.2916,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-29",
+            "equity": 1000.2818,
+            "price": 169.4547,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-05",
+            "equity": 1000.2744,
+            "price": 167.8426,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-12",
+            "equity": 1000.3546,
+            "price": 185.2345,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-19",
+            "equity": 1000.3515,
+            "price": 184.5701,
+            "has_position": true
+          },
+          {
+            "date": "2024-11-26",
+            "equity": 1000.3582,
+            "price": 186.0065,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-03",
+            "equity": 1000.3244,
+            "price": 178.6979,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-10",
+            "equity": 1000.3012,
+            "price": 173.666,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-17",
+            "equity": 1000.265,
+            "price": 165.82,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-24",
+            "equity": 1000.2727,
+            "price": 167.4811,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-31",
+            "equity": 1000.2512,
+            "price": 162.8204,
+            "has_position": true
+          },
+          {
+            "date": "2024-12-31_close",
+            "equity": 1000.2511,
+            "price": 162.8204,
+            "has_position": false
+          }
+        ]
+      }
+    },
+    "argos_ci": {
+      "n": 53,
+      "mean_sharpe": 1.177,
+      "p025": -0.552,
+      "p975": 2.815
+    }
+  },
+  "KO": {
+    "buy_and_hold": {
+      "name": "buy_and_hold",
+      "ticker": "KO",
+      "n_periods": 251,
+      "total_return_pct": 7.258,
+      "sharpe": 0.28
+    },
+    "ma_cross": {
+      "name": "ma_cross_20_50",
+      "ticker": "KO",
+      "n_periods": 251,
+      "total_return_pct": 10.69,
+      "sharpe": 0.522
+    },
+    "random": {
+      "n": 1000,
+      "mean_sharpe": 0.391,
+      "p025_sharpe": -1.182,
+      "p975_sharpe": 1.955,
+      "mean_return_pct": 3.311
+    },
+    "argos": {
+      "n_decisions": 53,
+      "buy_prob": 0.1887,
+      "sell_prob": 0.0189,
+      "sim_stats": {
+        "trades": 1,
+        "wins": 1,
+        "losses": 0,
+        "hit_rate_pct": 100.0,
+        "avg_holding_return_pct": 11.92,
+        "starting_cash": 1000.0,
+        "final_cash": 1002.71,
+        "final_equity_incl_open": 1002.71,
+        "return_pct": 0.271,
+        "total_fees_paid": 0.0,
+        "total_cgt_paid": 0.0,
+        "breakeven_per_trade_pct": 0.02,
+        "fee_mode": "flat_bps",
+        "exits_by_reason": {
+          "signal": 1
+        },
+        "nav_curve": [
+          {
+            "date": "2024-01-02",
+            "equity": 1000.0,
+            "price": 55.3093,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-09",
+            "equity": 1000.0,
+            "price": 55.4758,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-16",
+            "equity": 1000.0,
+            "price": 55.4665,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-23",
+            "equity": 1000.0,
+            "price": 55.3371,
+            "has_position": false
+          },
+          {
+            "date": "2024-01-30",
+            "equity": 999.9977,
+            "price": 55.3833,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-06",
+            "equity": 1000.0129,
+            "price": 55.4203,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-13",
+            "equity": 999.7893,
+            "price": 54.8748,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-20",
+            "equity": 1000.3009,
+            "price": 56.123,
+            "has_position": true
+          },
+          {
+            "date": "2024-02-27",
+            "equity": 1000.1645,
+            "price": 55.7901,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-05",
+            "equity": 999.8537,
+            "price": 55.032,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-12",
+            "equity": 1000.2251,
+            "price": 55.9381,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-19",
+            "equity": 1000.3053,
+            "price": 56.1339,
+            "has_position": true
+          },
+          {
+            "date": "2024-03-26",
+            "equity": 1000.4237,
+            "price": 56.4228,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-02",
+            "equity": 1000.2748,
+            "price": 56.0593,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-09",
+            "equity": 1000.1105,
+            "price": 55.6585,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-16",
+            "equity": 999.4765,
+            "price": 54.1114,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-23",
+            "equity": 1000.4619,
+            "price": 56.516,
+            "has_position": true
+          },
+          {
+            "date": "2024-04-30",
+            "equity": 1000.8935,
+            "price": 57.5691,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-07",
+            "equity": 1001.2182,
+            "price": 58.3613,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-14",
+            "equity": 1001.4015,
+            "price": 58.8087,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-21",
+            "equity": 1001.329,
+            "price": 58.6316,
+            "has_position": true
+          },
+          {
+            "date": "2024-05-28",
+            "equity": 1000.9126,
+            "price": 57.6157,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-04",
+            "equity": 1001.7224,
+            "price": 59.5915,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-11",
+            "equity": 1001.5734,
+            "price": 59.2281,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-18",
+            "equity": 1001.4077,
+            "price": 58.8236,
+            "has_position": true
+          },
+          {
+            "date": "2024-06-25",
+            "equity": 1001.8734,
+            "price": 59.96,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-02",
+            "equity": 1001.6078,
+            "price": 59.3119,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-09",
+            "equity": 1001.4307,
+            "price": 58.8799,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-16",
+            "equity": 1002.0389,
+            "price": 60.3639,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-23",
+            "equity": 1002.3045,
+            "price": 61.0119,
+            "has_position": true
+          },
+          {
+            "date": "2024-07-30",
+            "equity": 1003.3515,
+            "price": 63.5666,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-06",
+            "equity": 1003.4939,
+            "price": 63.9141,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-13",
+            "equity": 1003.6517,
+            "price": 64.2992,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-20",
+            "equity": 1004.0059,
+            "price": 65.1633,
+            "has_position": true
+          },
+          {
+            "date": "2024-08-27",
+            "equity": 1004.8219,
+            "price": 67.1545,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-03",
+            "equity": 1005.4031,
+            "price": 68.5727,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-10",
+            "equity": 1004.8412,
+            "price": 67.2014,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-17",
+            "equity": 1005.1269,
+            "price": 67.8985,
+            "has_position": true
+          },
+          {
+            "date": "2024-09-24",
+            "equity": 1004.9447,
+            "price": 67.4541,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-01",
+            "equity": 1005.092,
+            "price": 67.8134,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-08",
+            "equity": 1004.1114,
+            "price": 65.4209,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-15",
+            "equity": 1004.561,
+            "price": 66.5179,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-22",
+            "equity": 1004.2161,
+            "price": 65.6762,
+            "has_position": true
+          },
+          {
+            "date": "2024-10-29",
+            "equity": 1002.7059,
+            "price": 61.9976,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-05",
+            "equity": 1002.7059,
+            "price": 61.8179,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-12",
+            "equity": 1002.7059,
+            "price": 59.7659,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-19",
+            "equity": 1002.7059,
+            "price": 59.189,
+            "has_position": false
+          },
+          {
+            "date": "2024-11-26",
+            "equity": 1002.7059,
+            "price": 61.0425,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-03",
+            "equity": 1002.7059,
+            "price": 60.5241,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-10",
+            "equity": 1002.7059,
+            "price": 59.9428,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-17",
+            "equity": 1002.7059,
+            "price": 60.4097,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-24",
+            "equity": 1002.7059,
+            "price": 59.8761,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-31",
+            "equity": 1002.7059,
+            "price": 59.3235,
+            "has_position": false
+          },
+          {
+            "date": "2024-12-31_close",
+            "equity": 1002.7059,
+            "price": 59.3235,
+            "has_position": false
+          }
+        ]
+      }
+    },
+    "argos_ci": {
+      "n": 53,
+      "mean_sharpe": 0.888,
+      "p025": -1.186,
+      "p975": 3.112
+    }
+  }
+}
