@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #050507;
+  --color-panel: #0b0d10;
+  --color-panel-2: #10141a;
+  --color-hairline: #1c2026;
+  --color-hairline-2: #2a3038;
+  --color-ink: #c8d0da;
+  --color-dim: #6b7480;
+  --color-faint: #3d454f;
+
+  --color-bull: #00ff9d;
+  --color-bear: #ff3b5c;
+  --color-amber: #ffb020;
+  --color-data: #4cc9f0;
+
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --animate-pulse-node: pulse-node 1.4s ease-in-out infinite;
+  --animate-scan: scan 8s linear infinite;
+}
+
+@keyframes pulse-node {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-bull) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--color-bull) 35%, transparent);
+  }
+}
+
+@keyframes scan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-void);
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-bull) 30%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-hairline-2);
+    border-radius: 0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-faint);
+  }
+
+  input,
+  select,
+  button,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  *:focus-visible {
+    outline: 1px solid var(--color-data);
+    outline-offset: 1px;
+  }
+}
+
+@utility label-micro {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+@utility hairline {
+  border: 1px solid var(--color-hairline);
+}
+
+@utility panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,299 @@
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { api } from "../lib/api";
+import { useRunStream } from "../lib/useRunStream";
+import type { SystemStatus } from "../types/api";
+import type { JournalRecord } from "../types/record";
+import { Chip, Empty, Panel } from "../components/ui";
+import PipelineRail from "../components/PipelineRail";
+import RecordView from "../components/record/RecordView";
+
+type Market = "nasdaq" | "nepse";
+
+interface Form {
+  market: Market;
+  ticker: string;
+  date: string;
+  rounds: number;
+  persist: boolean;
+}
+
+const DEFAULT_FORM: Form = { market: "nasdaq", ticker: "NVDA", date: "2024-01-02", rounds: 2, persist: true };
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="label-micro mb-1 block">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+const inputCls =
+  "w-full border border-hairline bg-void px-2 py-1.5 text-[13px] text-ink outline-none focus:border-data/60";
+
+function LivePanels({ nodes }: { nodes: { node: string; delta: Record<string, unknown> | null }[] }) {
+  const byNode = useMemo(() => {
+    const m = new Map<string, Record<string, unknown>>();
+    for (const ev of nodes) {
+      if (ev.delta) m.set(ev.node, { ...(m.get(ev.node) ?? {}), ...ev.delta });
+    }
+    return m;
+  }, [nodes]);
+
+  const pick = <T,>(node: string, key: string): T | null =>
+    ((byNode.get(node) as Record<string, unknown> | undefined)?.[key] as T | undefined) ?? null;
+
+  /* Assemble a live pseudo-record from accumulated node deltas so every
+     shared component fills in exactly as the graph executes. */
+  const transcript = pick<JournalRecord["debate_transcript"]>("bear", "debate_transcript") ?? [];
+  const live: Partial<JournalRecord> = {
+    analyst_signals: {
+      fundamentals: pick("fundamentals", "fundamentals_signal"),
+      sentiment: pick("sentiment", "sentiment_signal"),
+      technicals: pick("technicals", "technicals_signal"),
+    },
+    multi_horizon_forecast: pick("forecast", "multi_horizon_forecast"),
+    debate_transcript: transcript,
+    debate: byNode.has("bear")
+      ? {
+          bull: pick("bull", "bull_argument"),
+          bear: pick("bear", "bear_argument"),
+          rounds_completed: Math.max(1, Math.ceil(transcript.length / 2)),
+        }
+      : null,
+    judge_verdict: pick("judge", "judge_verdict"),
+    risk_verdict: pick("risk_manager", "risk_verdict"),
+    final_decision: pick("portfolio_manager", "final_decision"),
+  };
+
+  const filled = Object.values(live).filter((v) => v !== null && v !== undefined).length;
+
+  return (
+    <div className="space-y-3">
+      <Panel
+        title="Live state"
+        right={<span className="text-[10px] text-faint tabular-nums">{filled}/7 sections filled</span>}
+      >
+        <div className="flex flex-wrap gap-1.5 p-3">
+          {(
+            [
+              ["analysts", live.analyst_signals && Object.values(live.analyst_signals).some(Boolean)],
+              ["forecast", live.multi_horizon_forecast],
+              ["debate", transcript.length > 0],
+              ["judge", live.judge_verdict],
+              ["risk", live.risk_verdict],
+              ["decision", live.final_decision],
+            ] as const
+          ).map(([k, v]) => (
+            <Chip key={k} tone={v ? "bull" : "neutral"}>
+              {v ? `✓ ${k}` : `· ${k}`}
+            </Chip>
+          ))}
+        </div>
+      </Panel>
+      {filled > 0 && <RecordView record={live as JournalRecord} showJson={false} />}
+    </div>
+  );
+}
+
+export default function CommandDeck({ sys }: { sys: SystemStatus | null }) {
+  const [form, setForm] = useState<Form>(DEFAULT_FORM);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [startErr, setStartErr] = useState<string | null>(null);
+  const [confirmCold, setConfirmCold] = useState(false);
+  const { state, live } = useRunStream(runId);
+
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  const cacheRows = sys?.llm_cache.total_rows ?? 0;
+  const cached = cacheRows > 0; /* coarse hint — per-(ticker,date) coldness isn't tracked */
+
+  const start = async () => {
+    setStarting(true);
+    setStartErr(null);
+    try {
+      const id = await api.startRun({
+        market: form.market,
+        ticker: form.ticker.trim().toUpperCase(),
+        date: form.date,
+        max_debate_rounds: form.rounds,
+        persist: form.persist,
+      });
+      setRunId(id);
+    } catch (e) {
+      setStartErr((e as Error).message);
+    } finally {
+      setStarting(false);
+      setConfirmCold(false);
+    }
+  };
+
+  const requestStart = () => {
+    if (!cached) setConfirmCold(true);
+    else void start();
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-3 p-4">
+      <div className="flex items-center gap-3">
+        <h2 className="text-[12px] tracking-[0.3em] text-ink uppercase">Command Deck</h2>
+        {sys && <Chip tone="data">{sys.market_label}</Chip>}
+        <span className="ml-auto text-[10px] text-faint">
+          graph → stream_mode="updates" → SSE
+        </span>
+      </div>
+
+      <Panel title="Run config">
+        <div className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-6">
+          <Field label="market">
+            <select className={inputCls} value={form.market} onChange={(e) => set("market", e.target.value as Market)}>
+              <option value="nasdaq">NASDAQ</option>
+            </select>
+          </Field>
+          <Field label="ticker">
+            <input
+              className={inputCls}
+              value={form.ticker}
+              onChange={(e) => set("ticker", e.target.value.toUpperCase())}
+              placeholder="NVDA"
+            />
+          </Field>
+          <Field label="as-of date">
+            <input className={inputCls} type="date" value={form.date} onChange={(e) => set("date", e.target.value)} />
+          </Field>
+          <Field label="debate rounds">
+            <div className="flex">
+              <button
+                className="border border-hairline px-2 text-dim hover:text-ink"
+                onClick={() => set("rounds", Math.max(1, form.rounds - 1))}
+              >
+                −
+              </button>
+              <div className="flex-1 border-y border-hairline bg-void py-1.5 text-center text-ink tabular-nums">
+                {form.rounds}
+              </div>
+              <button
+                className="border border-hairline px-2 text-dim hover:text-ink"
+                onClick={() => set("rounds", Math.min(10, form.rounds + 1))}
+              >
+                +
+              </button>
+            </div>
+          </Field>
+          <Field label="persist to journal">
+            <button
+              onClick={() => set("persist", !form.persist)}
+              className={`w-full border px-2 py-1.5 text-[11px] tracking-widest uppercase ${
+                form.persist ? "border-bull/50 bg-bull/10 text-bull" : "border-hairline text-dim"
+              }`}
+            >
+              {form.persist ? "✓ append jsonl" : "✕ dry run"}
+            </button>
+          </Field>
+          <Field label="execute">
+            <button
+              onClick={requestStart}
+              disabled={starting || state.status === "running" || state.status === "connecting"}
+              className="w-full border border-bull/60 bg-bull/10 px-2 py-1.5 text-[12px] tracking-[0.2em] text-bull uppercase enabled:hover:bg-bull/20 disabled:opacity-40"
+            >
+              {starting || state.status === "running" || state.status === "connecting"
+                ? "streaming…"
+                : "▶ run graph"}
+            </button>
+          </Field>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 border-t border-hairline px-3 py-2 text-[10px] tracking-wider text-dim uppercase">
+          <span>
+            llm cache <span className="text-data">{cacheRows} rows</span>
+          </span>
+          <span>
+            estimate{" "}
+            <span className={cached ? "text-bull" : "text-amber"}>
+              ~{form.rounds * 4 + 4} llm calls {cached ? "(likely cached ≈ $0)" : "(COLD — real spend)"}
+            </span>
+          </span>
+          <span>
+            max rounds <span className="text-data">{sys?.max_debate_rounds ?? "—"}</span> (env)
+          </span>
+          {startErr && <span className="text-bear">error: {startErr}</span>}
+        </div>
+      </Panel>
+
+      {runId && (
+        <div className="flex items-center gap-3 text-[11px]">
+          <Chip tone={state.status === "error" ? "bear" : state.status === "done" ? "bull" : "amber"}>
+            {state.status}
+          </Chip>
+          <span className="text-faint tabular-nums">run {runId.slice(0, 8)}</span>
+          <span className={live ? "text-bull" : "text-faint"}>{live ? "● sse live" : "○ idle"}</span>
+          {state.record && (
+            <span className="text-data">
+              duration {state.record.duration_s}s
+            </span>
+          )}
+          {state.persisted && state.journalPath && (
+            <Link to={`/journal/${form.market}/${form.ticker}/${form.date}`} className="text-data hover:underline">
+              → journalled: {state.journalPath}
+            </Link>
+          )}
+          <button
+            onClick={() => setRunId(null)}
+            className="ml-auto text-[10px] tracking-widest text-dim uppercase hover:text-ink"
+          >
+            clear
+          </button>
+        </div>
+      )}
+
+      {state.error && (
+        <div className="border-l-2 border-bear bg-bear/5 px-3 py-2 text-[11px] text-bear">{state.error}</div>
+      )}
+
+      {runId && <PipelineRail nodes={state.nodes} done={state.status === "done"} />}
+
+      {runId && state.status !== "connecting" && <LivePanels nodes={state.nodes} />}
+
+      {state.record && (
+        <Panel title="Final record (build_record)">
+          <div className="p-3">
+            <RecordView record={state.record} />
+          </div>
+        </Panel>
+      )}
+
+      {!runId && (
+        <Panel title="Theater idle">
+          <Empty>configure a run above — the graph streams node-by-node over SSE</Empty>
+        </Panel>
+      )}
+
+      {confirmCold && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/85 p-4">
+          <div className="panel max-w-md p-4">
+            <h4 className="mb-2 text-[12px] tracking-[0.2em] text-amber uppercase">⚠ cold run</h4>
+            <p className="mb-3 text-[12px] leading-relaxed text-dim">
+              No LLM cache rows found — this run will make ~{form.rounds * 4 + 4} real model calls
+              (Gemini free tier). Persist: {form.persist ? "ON" : "OFF"}.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmCold(false)}
+                className="border border-hairline px-3 py-1 text-[11px] text-dim hover:text-ink"
+              >
+                cancel
+              </button>
+              <button
+                onClick={() => void start()}
+                className="border border-amber/60 bg-amber/10 px-3 py-1 text-[11px] text-amber uppercase"
+              >
+                run anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

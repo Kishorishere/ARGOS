@@ -1,0 +1,238 @@
+import { useCallback, useEffect, useState } from "react";
+import { Link, Route, Routes, useParams } from "react-router-dom";
+import { api } from "../lib/api";
+import type { JournalDetail, JournalTree, SystemStatus } from "../types/api";
+import { Chip, Empty, Panel } from "../components/ui";
+import RecordView from "../components/record/RecordView";
+
+type Market = "nasdaq" | "nepse" | "legacy";
+
+function useTree(market: Market) {
+  const [tree, setTree] = useState<JournalTree | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    api
+      .journalTree(market)
+      .then((t) => alive && setTree(t))
+      .catch((e: Error) => alive && setErr(e.message))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [market]);
+
+  return { tree, err, loading };
+}
+
+function MarketSwitch() {
+  const { market = "nasdaq" } = useParams();
+  const markets: Market[] = ["nasdaq", "legacy"];
+  return (
+    <div className="flex gap-1">
+      {markets.map((m) => (
+        <Link
+          key={m}
+          to={`/journal/${m}`}
+          className={`border px-2.5 py-1 text-[10px] tracking-[0.15em] uppercase ${
+            m === market ? "border-data/50 bg-data/10 text-data" : "border-hairline text-dim hover:text-ink"
+          }`}
+        >
+          {m}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function TickerList({ market }: { market: Market }) {
+  const { tree, err, loading } = useTree(market);
+  if (loading) return <Empty>scanning journals…</Empty>;
+  if (err) return <Empty>error: {err}</Empty>;
+  if (!tree || tree.tickers.length === 0) return <Empty>no journals for {market}</Empty>;
+  return (
+    <div className="divide-y divide-hairline">
+      {tree.tickers.map((t) => (
+        <Link
+          key={t.ticker}
+          to={`/journal/${market}/${t.ticker}`}
+          className="flex items-center gap-4 px-3 py-2 hover:bg-panel-2"
+        >
+          <span className="w-16 text-[13px] font-bold text-ink">{t.ticker}</span>
+          <span className="text-[11px] text-dim tabular-nums">{t.dates.length} dates</span>
+          <span className="text-[11px] text-data tabular-nums">{t.records} records</span>
+          {t.errors > 0 && <Chip tone="bear">{t.errors} err</Chip>}
+          <span className="ml-auto text-[10px] text-faint tabular-nums">
+            {t.dates[0]} → {t.dates[t.dates.length - 1]}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function DateList({ market }: { market: Market; ticker: string }) {
+  const { ticker = "" } = useParams();
+  const { tree, loading, err } = useTree(market);
+  const t = tree?.tickers.find((x) => x.ticker === ticker.toUpperCase());
+  if (loading) return <Empty>loading…</Empty>;
+  if (err) return <Empty>{err}</Empty>;
+  if (!t) return <Empty>{ticker} not found in {market}</Empty>;
+  return (
+    <div className="divide-y divide-hairline">
+      {[...t.dates].reverse().map((d) => (
+        <Link
+          key={d}
+          to={`/journal/${market}/${ticker}/${d}`}
+          className="flex items-center gap-4 px-3 py-1.5 hover:bg-panel-2"
+        >
+          <span className="text-data">▸</span>
+          <span className="text-[12px] text-ink tabular-nums">{d}</span>
+          <span className="ml-auto text-[10px] text-faint uppercase">open</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function AttemptList({ market }: { market: Market }) {
+  const { ticker = "", date = "" } = useParams();
+  const [detail, setDetail] = useState<JournalDetail | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [active, setActive] = useState(0);
+
+  const load = useCallback(() => {
+    api
+      .journalDetail(market, ticker, date, "all")
+      .then((d) => {
+        setDetail(d);
+        setActive(d.attempts.length - 1);
+      })
+      .catch((e: Error) => setErr(e.message));
+  }, [market, ticker, date]);
+
+  useEffect(() => {
+    setDetail(null);
+    setErr(null);
+    load();
+  }, [load]);
+
+  if (err) return <Empty>{err}</Empty>;
+  if (!detail) return <Empty>reading journal…</Empty>;
+
+  const rec = detail.attempts[active];
+  return (
+    <div className="space-y-3">
+      <nav className="flex flex-wrap items-center gap-3 text-[11px]">
+        <Link to={`/journal/${market}`} className="text-dim hover:text-ink">
+          ← {market}
+        </Link>
+        <Link to={`/journal/${market}/${ticker}`} className="text-dim hover:text-ink">
+          {ticker.toUpperCase()}
+        </Link>
+        <span className="text-ink tabular-nums">{date}</span>
+        <span className="text-faint">{detail.path}</span>
+        {detail.n_attempts > 1 && (
+          <span className="ml-auto flex items-center gap-1">
+            <span className="label-micro">attempts</span>
+            {detail.attempts.map((a, i) => (
+              <button
+                key={a.attempt_id ?? i}
+                onClick={() => setActive(i)}
+                className={`border px-2 py-0.5 text-[10px] tabular-nums ${
+                  i === active
+                    ? "border-amber/50 bg-amber/10 text-amber"
+                    : "border-hairline text-dim hover:text-ink"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </span>
+        )}
+      </nav>
+      {rec ? (
+        <RecordView record={rec} attempt={active + 1} of={detail.attempts.length} />
+      ) : (
+        <Empty>no attempt selected</Empty>
+      )}
+    </div>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto max-w-6xl p-4">
+      <div className="mb-3 flex items-center gap-3">
+        <h2 className="text-[12px] tracking-[0.3em] text-ink uppercase">Journal Explorer</h2>
+        <MarketSwitch />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export default function JournalExplorer({ sys }: { sys: SystemStatus | null }) {
+  const counts = sys?.journals;
+  return (
+    <Shell>
+      <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
+        <div className="space-y-3">
+          <Routes>
+            <Route path=":market?" element={<TickerRoute />} />
+            <Route path=":market/:ticker" element={<DateRoute />} />
+            <Route path=":market/:ticker/:date" element={<TickerRoute />} />
+          </Routes>
+          {counts && (
+            <Panel title="Corpus">
+              <div className="grid grid-cols-3 gap-2 p-3 text-[11px]">
+                {Object.entries(counts).map(([m, c]) =>
+                  "error" in c ? null : (
+                    <div key={m}>
+                      <span className="label-micro">{m}</span>
+                      <div className="text-data tabular-nums">{c.records}</div>
+                      <div className="text-faint tabular-nums">
+                        {c.tickers} tk · {c.errors} err
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            </Panel>
+          )}
+        </div>
+        <Routes>
+          <Route path=":market?" element={<Panel title="Record"><Empty>select a ticker → date</Empty></Panel>} />
+          <Route path=":market/:ticker" element={<Panel title="Record"><Empty>select a date</Empty></Panel>} />
+          <Route path=":market/:ticker/:date" element={<AttemptRoute />} />
+        </Routes>
+      </div>
+    </Shell>
+  );
+}
+
+function TickerRoute() {
+  const { market = "nasdaq" } = useParams();
+  return (
+    <Panel title={`Tickers — ${market}`}>
+      <TickerList market={market as Market} />
+    </Panel>
+  );
+}
+
+function DateRoute() {
+  const { market = "nasdaq" } = useParams();
+  return (
+    <Panel title="Dates">
+      <DateList market={market as Market} ticker="" />
+    </Panel>
+  );
+}
+
+function AttemptRoute() {
+  const { market = "nasdaq" } = useParams();
+  return <AttemptList market={market as Market} />;
+}
